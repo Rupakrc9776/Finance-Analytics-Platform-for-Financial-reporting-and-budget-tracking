@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Environment Variables
+.env
+
+# Database
+finance.db
+*.db
+
+# Uploaded Files
+static/uploads/
+uploads/
+
+# VS Code
+.vscode/
+
+# Build
+dist/
+build/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# PDF Reports
+Financial_Report.pdf

@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}
+Income | Smart Finance Insights
+{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">
+    Income Management
+</h1>
+
+<div class="fade">
+
+    <!-- Income Cards -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <i class="fa-solid fa-wallet"></i>
+
+            <h3>Current Monthly Income</h3>
+
+            <h2>₹ {{ income }}</h2>
+
+        </div>
+
+        <div class="card">
+
+            <i class="fa-solid fa-sack-dollar"></i>
+
+            <h3>Estimated Yearly Income</h3>
+
+            <h2>₹ {{ income * 12 }}</h2>
+
+        </div>
+
+        <div class="card">
+
+            <i class="fa-solid fa-chart-line"></i>
+
+            <h3>Income Status</h3>
+
+            <h2>Active</h2>
+
+        </div>
+
+        <div class="card">
+
+            <i class="fa-solid fa-calendar-days"></i>
+
+            <h3>Last Updated</h3>
+
+            <h2>Today</h2>
+
+        </div>
+
+    </div>
+
+    <!-- Update Income -->
+
+    <div class="form-card">
+
+        <h2>
+
+            Update Monthly Income
+
+        </h2>
+
+        <form action="/update_income" method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+
+                <label>Monthly Income</label>
+
+                <input type="number" name="income" min="0" value="{{ income }}" required>
+
+            </div>
+
+            <button type="submit" class="btn btn-success">
+
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                Update Income
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

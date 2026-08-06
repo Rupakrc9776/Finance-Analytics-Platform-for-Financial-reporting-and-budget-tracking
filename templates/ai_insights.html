@@ -1,0 +1,749 @@
+{% extends "base.html" %}
+
+{% block title %}
+AI Insights | Smart Finance Insights
+{% endblock %}
+
+{% block content %}
+
+{% set monthly_expense = expense|float %}
+{% set monthly_savings = savings|float %}
+{% set expense_ratio = percentage|float %}
+{% set highest_spend = highest_amount|float %}
+{% set health_score = 100 - expense_ratio %}
+{% if monthly_savings < 0 %}
+{% set health_score = health_score - 10 %}
+{% endif %}
+{% if health_score < 0 %}
+{% set health_score = 0 %}
+{% endif %}
+{% if health_score > 100 %}
+{% set health_score = 100 %}
+{% endif %}
+{% if health_score >= 85 %}
+{% set health_status = "Excellent" %}
+{% elif health_score >= 70 %}
+{% set health_status = "Good" %}
+{% elif health_score >= 55 %}
+{% set health_status = "Average" %}
+{% else %}
+{% set health_status = "Needs Improvement" %}
+{% endif %}
+{% if health_score >= 85 %}
+{% set health_tone = "excellent" %}
+{% elif health_score >= 70 %}
+{% set health_tone = "good" %}
+{% elif health_score >= 55 %}
+{% set health_tone = "average" %}
+{% else %}
+{% set health_tone = "needs-improvement" %}
+{% endif %}
+{% set highest_share = (highest_spend / monthly_expense * 100) if monthly_expense else 0 %}
+{% set savings_rate = (monthly_savings / monthly_expense * 100) if monthly_expense else 0 %}
+{% set projected_year_end_savings = monthly_savings * 12 %}
+{% set projected_monthly_expense = monthly_expense %}
+{% set projected_annual_expense = monthly_expense * 12 %}
+{% set category_reduction = (highest_spend * 0.10) %}
+{% set category_annual_benefit = category_reduction * 12 %}
+{% if expense_ratio < 40 and monthly_savings >= 0 %}
+{% set habit_badge = "Responsible Spender" %}
+{% elif expense_ratio < 60 and monthly_savings >= 0 %}
+{% set habit_badge = "Budget Conscious" %}
+{% elif monthly_savings > 0 %}
+{% set habit_badge = "High Savings Potential" %}
+{% elif expense_ratio >= 80 %}
+{% set habit_badge = "Needs Better Investment" %}
+{% else %}
+{% set habit_badge = "Good Budget Control" %}
+{% endif %}
+
+<div class="ai-dashboard fade">
+
+    <section class="ai-hero">
+        <div class="ai-hero-copy">
+            <div class="ai-badge-row">
+                <span class="ai-badge"><i class="fa-solid fa-robot"></i> AI Assistant</span>
+                <span class="ai-subbadge">Live financial analysis</span>
+            </div>
+            <h1>🤖 AI Financial Insights</h1>
+            <p>Personalized recommendations and intelligent analysis based on your financial activity.</p>
+            <div class="ai-hero-meta">
+                <span><i class="fa-solid fa-sparkles"></i> Smart recommendations</span>
+                <span><i class="fa-solid fa-shield-heart"></i> Privacy-aware insights</span>
+                <span><i class="fa-solid fa-chart-simple"></i> Data-driven summaries</span>
+            </div>
+        </div>
+
+        <div class="ai-hero-panel">
+            <div class="ai-mini-label">Financial Health Score</div>
+            <div class="ai-ring" data-health-score="{{ health_score|int }}">
+                <div class="ai-ring-inner">
+                    <strong>{{ health_score|int }}</strong>
+                    <span>/100</span>
+                </div>
+            </div>
+            <div class="ai-panel-footer">
+                <div>
+                    <span>Status</span>
+                    <strong>{{ health_status }}</strong>
+                </div>
+                <div>
+                    <span>Habit</span>
+                    <strong>{{ habit_badge }}</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if financial_summary %}
+    <section class="table-card ai-engine-summary ai-engine-summary-panel">
+        <h3>Rule-Based Financial Intelligence</h3>
+        <p class="section-note">Engine: deterministic, data-driven recommendations from your actual records.</p>
+        {% if risk_indicator %}
+        <p><span class="status-chip {% if risk_indicator == 'Low' %}success{% elif risk_indicator == 'Moderate' %}info{% elif risk_indicator == 'Elevated' %}warning{% else %}danger{% endif %}">Risk Indicator: {{ risk_indicator }}</span></p>
+        {% endif %}
+        <p class="ai-summary-text">{{ financial_summary }}</p>
+        <div class="ai-rule-grid">
+            <article>
+                <h4>Saving Suggestions</h4>
+                <ul>
+                    {% for tip in saving_suggestions %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            <article>
+                <h4>Investment Suggestions</h4>
+                <ul>
+                    {% for tip in investment_suggestions %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            <article>
+                <h4>Budget Suggestions</h4>
+                <ul>
+                    {% for tip in budget_suggestions %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            <article>
+                <h4>Monthly Comparison</h4>
+                <ul>
+                    <li>Current month: Rs. {{ "{:,.0f}".format(monthly_comparison.current_month_expense) }}</li>
+                    <li>Previous month: Rs. {{ "{:,.0f}".format(monthly_comparison.previous_month_expense) }}</li>
+                    <li>Change: Rs. {{ "{:,.0f}".format(monthly_comparison.change_amount) }} ({{ monthly_comparison.change_percent }}%)</li>
+                </ul>
+            </article>
+
+            {% if top_opportunities %}
+            <article>
+                <h4>Top Opportunities</h4>
+                <ul>
+                    {% for item in top_opportunities %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endif %}
+
+            {% if health_explanation %}
+            <article>
+                <h4>Health Score Explanation</h4>
+                <ul>
+                    {% for item in health_explanation %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </article>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if savings_prediction %}
+    <section class="table-card ai-savings-prediction-panel">
+        <h3>Savings Prediction Timeline</h3>
+        <table>
+            <tr><th>Period</th><th>Estimated Savings</th></tr>
+            <tr><td>Current Monthly</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.current_savings) }}</td></tr>
+            <tr><td>3 Months</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.prediction_3m) }}</td></tr>
+            <tr><td>6 Months</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.prediction_6m) }}</td></tr>
+            <tr><td>12 Months</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.prediction_12m) }}</td></tr>
+            <tr><td>Expected Goal Achievement</td><td>{{ savings_prediction.expected_goal_achievement_date }}</td></tr>
+        </table>
+    </section>
+    {% endif %}
+
+    {% if achievements %}
+    <section class="table-card ai-achievement-panel">
+        <h3>Achievement Progress</h3>
+        <p class="section-note">Unlocked {{ achievements.earned_count }} of {{ achievements.total_count }}</p>
+        <ul class="insight-list">
+            {% for badge in achievements['items'][:8] %}
+            <li>
+                <strong>{{ badge.title }}</strong> - {{ badge.progress }}%
+                {% if badge.is_unlocked %}
+                <span class="status-chip success">Unlocked</span>
+                {% else %}
+                <span class="status-chip neutral">In Progress</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+
+        {% if improvement_tips %}
+        <h4>Improvement Tips</h4>
+        <ul>
+            {% for item in improvement_tips %}
+            <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    {% if monthly_expense == 0 and monthly_savings == 0 and highest_spend == 0 %}
+    <section class="ai-empty-state">
+        <div class="ai-empty-illustration">
+            <span class="orb orb-one"></span>
+            <span class="orb orb-two"></span>
+            <span class="orb orb-three"></span>
+            <div class="ai-empty-icon">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+        </div>
+        <h2>No financial data available yet.</h2>
+        <p>Start adding your income and expenses to unlock AI-powered insights.</p>
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('income') }}" class="quick-action"><i class="fa-solid fa-wallet"></i> Add Income</a>
+            <a href="{{ url_for('expense') }}" class="quick-action"><i class="fa-solid fa-plus"></i> Add Expense</a>
+            <a href="{{ url_for('budget') }}" class="quick-action"><i class="fa-solid fa-chart-pie"></i> Update Budget</a>
+            <a href="{{ url_for('reports') }}" class="quick-action"><i class="fa-solid fa-file-lines"></i> View Reports</a>
+        </div>
+    </section>
+    {% else %}
+
+    <section class="ai-summary-grid ai-metric-summary-grid">
+        <article class="metric-card metric-card-expense">
+            <div class="metric-top">
+                <span class="metric-icon"><i class="fa-solid fa-chart-pie"></i></span>
+                <span class="metric-trend trend-danger"><i class="fa-solid fa-arrow-trend-up"></i> +{{ expense_ratio|round(0)|int }}%</span>
+            </div>
+            <h3>Total Expense</h3>
+            <strong>₹ {{ "{:,.0f}".format(monthly_expense) }}</strong>
+            <p>Current monthly outflow analyzed from your recorded transactions.</p>
+        </article>
+
+        <article class="metric-card metric-card-savings">
+            <div class="metric-top">
+                <span class="metric-icon"><i class="fa-solid fa-piggy-bank"></i></span>
+                <span class="metric-trend trend-success"><i class="fa-solid fa-arrow-trend-up"></i> {{ savings_rate|round(0)|int }}%</span>
+            </div>
+            <h3>Total Savings</h3>
+            <strong>₹ {{ "{:,.0f}".format(monthly_savings) }}</strong>
+            <p>Estimated monthly surplus after your current spending pattern.</p>
+        </article>
+
+        <article class="metric-card metric-card-ratio">
+            <div class="metric-top">
+                <span class="metric-icon"><i class="fa-solid fa-percent"></i></span>
+                <span class="metric-trend {% if expense_ratio <= 50 %}trend-success{% elif expense_ratio <= 75 %}trend-warning{% else %}trend-danger{% endif %}"><i class="fa-solid fa-bolt"></i> Live</span>
+            </div>
+            <h3>Expense Ratio</h3>
+            <strong>{{ expense_ratio|round(0)|int }}%</strong>
+            <p>Share of income currently being used for monthly expenses.</p>
+        </article>
+
+        <article class="metric-card metric-card-category">
+            <div class="metric-top">
+                <span class="metric-icon"><i class="fa-solid fa-layer-group"></i></span>
+                <span class="metric-trend trend-neutral">Top category</span>
+            </div>
+            <h3>Highest Spending Category</h3>
+            <strong>{{ highest_category }}</strong>
+            <p>₹ {{ "{:,.0f}".format(highest_spend) }} accounts for {{ highest_share|round(0)|int }}% of monthly expenses.</p>
+        </article>
+    </section>
+
+    <section class="ai-core-grid">
+        <article class="ai-health-card glass-card">
+            <div class="section-kicker">AI Financial Health</div>
+            <div class="ai-health-wrap">
+                <div class="ai-ring large" data-health-score="{{ health_score|int }}">
+                    <div class="ai-ring-inner">
+                        <strong>{{ health_score|int }}</strong>
+                        <span>/100</span>
+                    </div>
+                </div>
+                <div class="ai-health-copy">
+                    <h2>{{ health_status }}</h2>
+                    <p>{{ advice }}</p>
+                    <div class="status-pill status-{{ health_tone }}">{{ health_status }}</div>
+                    <div class="progress-shell ai-progress-shell">
+                        <div class="progress-bar" data-width="{{ health_score|int }}"></div>
+                    </div>
+                    <small>This score combines your spending level and current savings balance.</small>
+                </div>
+            </div>
+        </article>
+
+        <article class="ai-recommendations-card glass-card">
+            <div class="section-kicker">AI Recommendations</div>
+            <div class="ai-recommendation-list">
+                <div class="recommendation-card priority-high">
+                    <div class="recommendation-head">
+                        <span class="priority-badge">High Priority</span>
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h3>Reduce {{ highest_category }} spending</h3>
+                    <p>Trim roughly ₹ {{ "{:,.0f}".format(category_reduction) }}/month to improve your savings rate.</p>
+                    <div class="recommendation-meta">
+                        <span>Reason</span>
+                        <strong>{{ highest_category }} is currently your largest expense driver.</strong>
+                    </div>
+                    <div class="recommendation-meta">
+                        <span>Expected benefit</span>
+                        <strong>Potential yearly savings: ₹ {{ "{:,.0f}".format(category_annual_benefit) }}</strong>
+                    </div>
+                </div>
+
+                <div class="recommendation-card priority-medium">
+                    <div class="recommendation-head">
+                        <span class="priority-badge">Medium Priority</span>
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3>Protect your savings buffer</h3>
+                    <p>Keep this month’s estimated savings on track to build a healthier year-end balance.</p>
+                    <div class="recommendation-meta">
+                        <span>Reason</span>
+                        <strong>You currently have ₹ {{ "{:,.0f}".format(monthly_savings) }} available as monthly savings.</strong>
+                    </div>
+                    <div class="recommendation-meta">
+                        <span>Expected benefit</span>
+                        <strong>Potential yearly savings: ₹ {{ "{:,.0f}".format(projected_year_end_savings) }}</strong>
+                    </div>
+                </div>
+
+                <div class="recommendation-card priority-low">
+                    <div class="recommendation-head">
+                        <span class="priority-badge">Low Priority</span>
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <h3>Maintain disciplined spending</h3>
+                    <p>Continue reviewing expenses every month to stay below high-risk thresholds.</p>
+                    <div class="recommendation-meta">
+                        <span>Reason</span>
+                        <strong>Expense ratio is currently at {{ expense_ratio|round(0)|int }}% of income.</strong>
+                    </div>
+                    <div class="recommendation-meta">
+                        <span>Expected benefit</span>
+                        <strong>Lower risk of overspending and more predictable cash flow.</strong>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <section class="ai-insights-grid">
+        <article class="insight-card glass-card">
+            <div class="section-kicker">Spending Pattern</div>
+            <h3>Where your money is going</h3>
+            <p>Your current spending is concentrated in <strong>{{ highest_category }}</strong>, which makes up {{ highest_share|round(0)|int }}% of expenses.</p>
+        </article>
+
+        <article class="insight-card glass-card">
+            <div class="section-kicker">Saving Trend</div>
+            <h3>Monthly surplus outlook</h3>
+            <p>You are estimated to save <strong>₹ {{ "{:,.0f}".format(monthly_savings) }}</strong> this month, or <strong>₹ {{ "{:,.0f}".format(projected_year_end_savings) }}</strong> if the pace continues.</p>
+        </article>
+
+        <article class="insight-card glass-card">
+            <div class="section-kicker">Budget Performance</div>
+            <h3>Budget control signal</h3>
+            <p>{% if expense_ratio < 50 %}You are operating comfortably below common spending risk levels.{% elif expense_ratio < 80 %}Your spending is manageable but worth monitoring closely.{% else %}Your current spending level needs immediate attention.{% endif %}</p>
+        </article>
+
+        <article class="insight-card glass-card">
+            <div class="section-kicker">Monthly Comparison</div>
+            <h3>Income versus expense</h3>
+            <p>Income sits at <strong>₹ {{ "{:,.0f}".format(expense|float + savings|float) }}</strong>, expenses at <strong>₹ {{ "{:,.0f}".format(monthly_expense) }}</strong>, leaving <strong>₹ {{ "{:,.0f}".format(monthly_savings) }}</strong> in surplus.</p>
+        </article>
+
+        <article class="insight-card glass-card">
+            <div class="section-kicker">Expense Distribution</div>
+            <h3>Concentration level</h3>
+            <p>The top category accounts for <strong>{{ highest_share|round(0)|int }}%</strong> of your current spending, showing where optimization will have the biggest impact.</p>
+        </article>
+    </section>
+
+    <section class="analysis-grid ai-analysis-grid">
+        <article class="analysis-card glass-card">
+            <div class="section-kicker">Expense Analysis</div>
+            <h3>Highest Spending Category</h3>
+            <div class="analysis-stat-row">
+                <div>
+                    <span>Category</span>
+                    <strong>{{ highest_category }}</strong>
+                </div>
+                <div>
+                    <span>Amount</span>
+                    <strong>₹ {{ "{:,.0f}".format(highest_spend) }}</strong>
+                </div>
+                <div>
+                    <span>Share</span>
+                    <strong>{{ highest_share|round(0)|int }}%</strong>
+                </div>
+            </div>
+            <div class="progress-shell ai-progress-shell">
+                <div class="progress-bar" data-width="{{ highest_share|round(0)|int }}"></div>
+            </div>
+            <p>{% if highest_share > 50 %}This category is taking a large share of your monthly spending. Consider trimming it first.{% elif highest_share > 25 %}This category is meaningful but still manageable with light optimization.{% else %}This category is reasonably controlled compared with the rest of your spending.{% endif %}</p>
+            <div class="analysis-note">Suggestion: reduce this category by a small fixed amount to unlock measurable yearly savings.</div>
+        </article>
+
+        <article class="analysis-card glass-card">
+            <div class="section-kicker">Savings Analysis</div>
+            <h3>Current Savings Position</h3>
+            <div class="analysis-stat-row">
+                <div>
+                    <span>Current Savings</span>
+                    <strong>₹ {{ "{:,.0f}".format(monthly_savings) }}</strong>
+                </div>
+                <div>
+                    <span>Estimated Year-end Savings</span>
+                    <strong>₹ {{ "{:,.0f}".format(projected_year_end_savings) }}</strong>
+                </div>
+                <div>
+                    <span>Monthly Saving Rate</span>
+                    <strong>{{ savings_rate|round(0)|int }}%</strong>
+                </div>
+            </div>
+            <div class="progress-shell ai-progress-shell">
+                <div class="progress-bar progress-bar-success" data-width="{{ savings_rate|round(0)|int if savings_rate > 0 else 0 }}"></div>
+            </div>
+            <p>{% if monthly_savings > 0 %}You are in surplus this month, which gives you room to invest or build emergency savings.{% elif monthly_savings == 0 %}You are currently at breakeven, so small expense reductions can create meaningful savings.{% else %}Your expenses exceed income and need immediate correction to restore positive cash flow.{% endif %}</p>
+            <div class="analysis-note">Status: {% if monthly_savings > 0 %}Positive cash flow{% elif monthly_savings == 0 %}Neutral cash flow{% else %}Negative cash flow{% endif %}</div>
+        </article>
+    </section>
+
+    <section class="predictions-card glass-card ai-predictions-panel">
+        <div class="section-kicker">AI Predictions</div>
+        <div class="prediction-grid">
+            <div class="prediction-item">
+                <span>Estimated Monthly Expense</span>
+                <strong>₹ {{ "{:,.0f}".format(projected_monthly_expense) }}</strong>
+                <small>Based on your current month of spending.</small>
+            </div>
+            <div class="prediction-item">
+                <span>Estimated Monthly Savings</span>
+                <strong>₹ {{ "{:,.0f}".format(monthly_savings) }}</strong>
+                <small>Expected surplus if current habits continue.</small>
+            </div>
+            <div class="prediction-item">
+                <span>Estimated Annual Savings</span>
+                <strong>₹ {{ "{:,.0f}".format(projected_year_end_savings) }}</strong>
+                <small>Year-end savings run-rate from current data.</small>
+            </div>
+            <div class="prediction-item">
+                <span>Predicted Budget Risk</span>
+                <strong>{% if expense_ratio < 50 %}Low{% elif expense_ratio < 80 %}Medium{% else %}High{% endif %}</strong>
+                <small>{% if expense_ratio < 50 %}Healthy headroom remains.{% elif expense_ratio < 80 %}Monitor large expenses closely.{% else %}Spending is close to or above the risk zone.{% endif %}</small>
+            </div>
+        </div>
+    </section>
+
+    <section class="habits-actions-grid">
+        <article class="habits-card glass-card">
+            <div class="section-kicker">Spending Habits</div>
+            <div class="habit-badges">
+                <span class="habit-badge">{{ habit_badge }}</span>
+                <span class="habit-badge">{% if savings_rate >= 20 %}Healthy Savings Rate{% else %}High Savings Potential{% endif %}</span>
+                <span class="habit-badge">{% if expense_ratio <= 60 %}Good Budget Control{% else %}Needs Better Budgeting{% endif %}</span>
+                <span class="habit-badge">{% if highest_share <= 35 %}Balanced Categories{% else %}Category Concentration{% endif %}</span>
+            </div>
+        </article>
+
+        <article class="actions-card glass-card ai-actions-panel">
+            <div class="section-kicker">Quick Actions</div>
+            <div class="quick-actions-grid compact">
+                <a href="{{ url_for('expense') }}" class="quick-action"><i class="fa-solid fa-plus"></i> Add Expense</a>
+                <a href="{{ url_for('reports') }}" class="quick-action"><i class="fa-solid fa-file-lines"></i> View Reports</a>
+                <a href="{{ url_for('budget') }}" class="quick-action"><i class="fa-solid fa-chart-pie"></i> Update Budget</a>
+                <a href="{{ url_for('investment') }}" class="quick-action"><i class="fa-solid fa-chart-line"></i> Investment Portfolio</a>
+                <a href="{{ url_for('financial_goals') }}" class="quick-action"><i class="fa-solid fa-bullseye"></i> Financial Goals</a>
+            </div>
+        </article>
+    </section>
+
+    <section class="charts-card glass-card">
+        <div class="section-kicker">Charts</div>
+        <div class="chart-grid ai-chart-grid">
+            <article class="chart-shell">
+                <div class="chart-title">
+                    <h3>Expense Trend</h3>
+                    <span>Projection based on the current month</span>
+                </div>
+                <div class="chart-viewport">
+                    <canvas id="expenseTrendChart" height="220"></canvas>
+                </div>
+            </article>
+
+            <article class="chart-shell">
+                <div class="chart-title">
+                    <h3>Savings Trend</h3>
+                    <span>Monthly surplus outlook</span>
+                </div>
+                <div class="chart-viewport">
+                    <canvas id="savingsTrendChart" height="220"></canvas>
+                </div>
+            </article>
+
+            <article class="chart-shell">
+                <div class="chart-title">
+                    <h3>Category Distribution</h3>
+                    <span>Largest category versus the rest</span>
+                </div>
+                <div class="chart-viewport chart-viewport-tight">
+                    <canvas id="categoryDistributionChart" height="220"></canvas>
+                </div>
+            </article>
+
+            <article class="chart-shell">
+                <div class="chart-title">
+                    <h3>Monthly Comparison</h3>
+                    <span>Income, expense, and savings snapshot</span>
+                </div>
+                <div class="chart-viewport">
+                    <canvas id="monthlyComparisonChart" height="220"></canvas>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ringElements = document.querySelectorAll('.ai-ring[data-health-score]');
+
+    ringElements.forEach((ring) => {
+        const score = Number(ring.dataset.healthScore || 0);
+        ring.style.setProperty('--score', score);
+    });
+
+    const hasData = {{ 'true' if not (expense|float == 0 and savings|float == 0 and highest_amount|float == 0) else 'false' }};
+
+    if (!hasData || typeof Chart === 'undefined') {
+        return;
+    }
+
+    const expense = Number({{ expense|float }});
+    const savings = Number({{ savings|float }});
+    const income = expense + savings;
+    const highestShare = Number({{ (highest_amount|float * 100 / expense|float) if expense|float else 0 }});
+    const highestSpend = Number({{ highest_amount|float }});
+    const otherSpend = Math.max(expense - highestSpend, 0);
+
+    const palette = typeof window.getThemeChartPalette === 'function'
+        ? window.getThemeChartPalette()
+        : {
+            series1: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-1').trim(),
+            series2: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-2').trim(),
+            series3: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-3').trim(),
+            series4: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-4').trim(),
+            series5: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-5').trim(),
+            series6: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-6').trim(),
+            series7: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-7').trim(),
+            series8: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-8').trim(),
+            text: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-text').trim(),
+            grid: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-grid').trim()
+        };
+    const chartPalette = {
+        blue: palette.series1,
+        sky: palette.series6,
+        teal: palette.series7,
+        violet: palette.series5,
+        amber: palette.series3,
+        rose: palette.series4,
+        slate: palette.text
+    };
+    const themeRgba = typeof window.themeColorToRgba === 'function'
+        ? window.themeColorToRgba
+        : ((color, alpha, fallback) => fallback || color);
+    const registerThemeAwareChart = typeof window.registerThemeAwareChart === 'function'
+        ? window.registerThemeAwareChart
+        : null;
+
+    const commonGrid = {
+        color: palette.grid
+    };
+
+    const commonTick = {
+        color: palette.text,
+        font: { family: 'Poppins' }
+    };
+
+    const expenseTrendChart = new Chart(document.getElementById('expenseTrendChart'), {
+        type: 'line',
+        data: {
+            labels: ['Current', 'Next 3M', 'Next 6M', 'Year-end'],
+            datasets: [{
+                label: 'Expense run rate',
+                data: [expense * 0.85, expense * 0.95, expense, expense * 1.08],
+                borderColor: chartPalette.blue,
+                backgroundColor: themeRgba(chartPalette.blue, .16),
+                tension: .42,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { grid: { display: false }, ticks: commonTick },
+                y: { grid: commonGrid, ticks: commonTick }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(expenseTrendChart, (chart, p, toRgbaColor) => {
+            chart.data.datasets[0].borderColor = p.series1;
+            chart.data.datasets[0].backgroundColor = toRgbaColor(p.series1, .16);
+            if (chart.options?.scales?.y?.grid) {
+                chart.options.scales.y.grid.color = p.grid;
+            }
+            if (chart.options?.scales?.x?.ticks) {
+                chart.options.scales.x.ticks.color = p.text;
+            }
+            if (chart.options?.scales?.y?.ticks) {
+                chart.options.scales.y.ticks.color = p.text;
+            }
+        });
+    }
+
+    const savingsTrendChart = new Chart(document.getElementById('savingsTrendChart'), {
+        type: 'line',
+        data: {
+            labels: ['Current', 'Next 3M', 'Next 6M', 'Year-end'],
+            datasets: [{
+                label: 'Savings run rate',
+                data: [savings * 0.8, savings * 0.95, savings, savings * 1.12],
+                borderColor: chartPalette.teal,
+                backgroundColor: themeRgba(chartPalette.teal, .14),
+                tension: .42,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { grid: { display: false }, ticks: commonTick },
+                y: { grid: commonGrid, ticks: commonTick }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(savingsTrendChart, (chart, p, toRgbaColor) => {
+            chart.data.datasets[0].borderColor = p.series7;
+            chart.data.datasets[0].backgroundColor = toRgbaColor(p.series7, .14);
+            if (chart.options?.scales?.y?.grid) {
+                chart.options.scales.y.grid.color = p.grid;
+            }
+            if (chart.options?.scales?.x?.ticks) {
+                chart.options.scales.x.ticks.color = p.text;
+            }
+            if (chart.options?.scales?.y?.ticks) {
+                chart.options.scales.y.ticks.color = p.text;
+            }
+        });
+    }
+
+    const categoryDistributionChart = new Chart(document.getElementById('categoryDistributionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Highest Category', 'Other Expenses'],
+            datasets: [{
+                data: [highestSpend, otherSpend || 1],
+                backgroundColor: [chartPalette.violet, chartPalette.slate],
+                borderWidth: 0,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: palette.text, font: { family: 'Poppins' } }
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(categoryDistributionChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = [p.series5, p.text];
+            if (chart.options?.plugins?.legend?.labels) {
+                chart.options.plugins.legend.labels.color = p.text;
+            }
+        });
+    }
+
+    const monthlyComparisonChart = new Chart(document.getElementById('monthlyComparisonChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Income', 'Expense', 'Savings'],
+            datasets: [{
+                label: 'Monthly snapshot',
+                data: [income, expense, savings],
+                backgroundColor: [chartPalette.sky, chartPalette.rose, chartPalette.teal],
+                borderRadius: 14,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                x: { grid: { display: false }, ticks: commonTick },
+                y: { grid: commonGrid, ticks: commonTick }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(monthlyComparisonChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = [p.series6, p.series4, p.series7];
+            if (chart.options?.scales?.y?.grid) {
+                chart.options.scales.y.grid.color = p.grid;
+            }
+            if (chart.options?.scales?.x?.ticks) {
+                chart.options.scales.x.ticks.color = p.text;
+            }
+            if (chart.options?.scales?.y?.ticks) {
+                chart.options.scales.y.ticks.color = p.text;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

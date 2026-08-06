@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Verify OTP | Smart Finance Insights</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card fade">
+
+        <h1>
+            <i class="fa-solid fa-shield-halved"></i>
+            Verify OTP
+        </h1>
+
+        <p>Enter the 6-digit code sent to your email.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="/verify_otp" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label>OTP</label>
+                <input type="text" name="otp" maxlength="6" placeholder="Enter 6-digit OTP" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Verify OTP</button>
+        </form>
+
+        <br>
+
+        <p>
+            Didn't receive it?
+            <a href="/forgot_password">Send again</a>
+        </p>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<section class="account-page fade">
+
+    <div class="page-heading-wrap">
+        <h1 class="page-heading">Account Settings</h1>
+        <p class="page-subheading">Control security, privacy, notifications, and recovery options.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form action="/account-settings" method="POST" class="settings-stack">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <section class="card-surface">
+            <div class="section-head">
+                <div>
+                    <h2>Security</h2>
+                    <p>Update your login credentials and contact information.</p>
+                </div>
+            </div>
+
+            <div class="form-grid form-grid-2">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" value="{{ user['email'] }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" value="{{ user['phone'] or '' }}" placeholder="Enter phone number">
+                </div>
+            </div>
+
+            <div class="form-grid form-grid-3">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <div class="password-box">
+                        <input type="password" id="currentPassword" name="current_password" placeholder="Current Password">
+                        <i class="fa-solid fa-eye toggle-password" data-target="currentPassword"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>New Password</label>
+                    <div class="password-box">
+                        <input type="password" id="newPassword" name="new_password" placeholder="New Password">
+                        <i class="fa-solid fa-eye toggle-password" data-target="newPassword"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <div class="password-box">
+                        <input type="password" id="confirmNewPassword" name="confirm_password" placeholder="Confirm New Password">
+                        <i class="fa-solid fa-eye toggle-password" data-target="confirmNewPassword"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="password-strength" aria-live="polite">
+                <div class="password-strength-bar" id="settingsStrengthBar"></div>
+            </div>
+            <p class="password-strength-text" id="settingsStrengthText">Password strength will appear here.</p>
+        </section>
+
+        <div class="settings-grid">
+            <section class="card-surface">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Privacy</h2>
+                        <p>Account visibility controls for your profile identity.</p>
+                    </div>
+                </div>
+
+                <div class="toggle-list">
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-lock"></i></div>
+                            <div>
+                                <strong>Private Profile</strong>
+                                <small>Keep personal details visible only to you.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="privacy_private_profile" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="privacy_private_profile" value="1" {% if user['privacy_private_profile'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-code"></i></div>
+                            <div>
+                                <strong>Public Developer Profile</strong>
+                                <small>Show GitHub and LinkedIn links on your profile.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="privacy_public_developer_profile" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="privacy_public_developer_profile" value="1" {% if user['privacy_public_developer_profile'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                            <div>
+                                <strong>Search Visibility</strong>
+                                <small>Allow your profile to appear in search results.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="privacy_search_visibility" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="privacy_search_visibility" value="1" {% if user['privacy_search_visibility'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card-surface">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Notifications</h2>
+                        <p>Choose how you want to receive updates.</p>
+                    </div>
+                </div>
+
+                <div class="toggle-list">
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-envelope"></i></div>
+                            <div>
+                                <strong>Email Notifications</strong>
+                                <small>Receive account and activity updates by email.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="notify_email_notifications" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="notify_email_notifications" value="1" {% if user['notify_email_notifications'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-wallet"></i></div>
+                            <div>
+                                <strong>Budget Limit Alerts</strong>
+                                <small>Get notified before you exceed your budget.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="notify_budget_alerts" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="notify_budget_alerts" value="1" {% if user['notify_budget_alerts'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-file-lines"></i></div>
+                            <div>
+                                <strong>Monthly Financial Report</strong>
+                                <small>Receive a monthly summary of account performance.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="notify_monthly_report" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="notify_monthly_report" value="1" {% if user['notify_monthly_report'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-bullseye"></i></div>
+                            <div>
+                                <strong>Goal Achievement Alerts</strong>
+                                <small>Celebrate when your savings goals are completed.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="notify_goal_alerts" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="notify_goal_alerts" value="1" {% if user['notify_goal_alerts'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-card">
+                        <div class="toggle-card-meta">
+                            <div class="toggle-card-icon"><i class="fa-solid fa-chart-line"></i></div>
+                            <div>
+                                <strong>Investment Performance Alerts</strong>
+                                <small>Stay updated on portfolio movement and returns.</small>
+                            </div>
+                        </div>
+                        <input type="hidden" name="notify_investment_alerts" value="0">
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="notify_investment_alerts" value="1" {% if user['notify_investment_alerts'] %}checked{% endif %}>
+                            <span class="toggle-switch-track"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card-surface">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Appearance & Export</h2>
+                        <p>Customize reporting and communication preferences.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-3">
+                    <div class="form-group">
+                        <label>Appearance Theme</label>
+                        <select name="appearance_theme">
+                            <option value="default" {% if (user['appearance_theme'] or 'default') == 'default' %}selected{% endif %}>Default</option>
+                            <option value="compact" {% if user['appearance_theme'] == 'compact' %}selected{% endif %}>Compact</option>
+                            <option value="comfortable" {% if user['appearance_theme'] == 'comfortable' %}selected{% endif %}>Comfortable</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Color Mode</label>
+                        <select name="theme_mode">
+                            <option value="light" {% if (user['theme_mode'] or 'light') == 'light' %}selected{% endif %}>Light</option>
+                            <option value="dark" {% if user['theme_mode'] == 'dark' %}selected{% endif %}>Dark</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Preferred Export Format</label>
+                        <select name="export_format_preference">
+                            <option value="csv" {% if (user['export_format_preference'] or 'csv') == 'csv' %}selected{% endif %}>CSV</option>
+                            <option value="pdf" {% if user['export_format_preference'] == 'pdf' %}selected{% endif %}>PDF</option>
+                            <option value="json" {% if user['export_format_preference'] == 'json' %}selected{% endif %}>JSON</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Report Frequency</label>
+                        <select name="email_report_frequency">
+                            <option value="weekly" {% if user['email_report_frequency'] == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="monthly" {% if (user['email_report_frequency'] or 'monthly') == 'monthly' %}selected{% endif %}>Monthly</option>
+                            <option value="quarterly" {% if user['email_report_frequency'] == 'quarterly' %}selected{% endif %}>Quarterly</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Search Preference</label>
+                        <select name="search_preference">
+                            <option value="all" {% if (user['search_preference'] or 'all') == 'all' %}selected{% endif %}>Search All Modules</option>
+                            <option value="finance" {% if user['search_preference'] == 'finance' %}selected{% endif %}>Finance Data First</option>
+                            <option value="activities" {% if user['search_preference'] == 'activities' %}selected{% endif %}>Activity First</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Layout Preference</label>
+                        <select name="layout_preference">
+                            <option value="default" {% if (user['layout_preference'] or 'default') == 'default' %}selected{% endif %}>Default</option>
+                            <option value="compact" {% if user['layout_preference'] == 'compact' %}selected{% endif %}>Compact</option>
+                            <option value="spacious" {% if user['layout_preference'] == 'spacious' %}selected{% endif %}>Spacious</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="card-surface session-info-card">
+            <div class="section-head compact">
+                <div>
+                    <h2>Session Information</h2>
+                    <p>Review the latest access details for your account.</p>
+                </div>
+            </div>
+
+            <div class="session-info-grid">
+                <article class="session-info-item">
+                    <span>Last Login Time</span>
+                    <strong>{{ session_info.last_login }}</strong>
+                </article>
+
+                <article class="session-info-item">
+                    <span>Current Browser</span>
+                    <strong>{{ session_info.current_browser }}</strong>
+                </article>
+
+                <article class="session-info-item">
+                    <span>Current Device</span>
+                    <strong>{{ session_info.current_device }}</strong>
+                </article>
+
+                <article class="session-info-item">
+                    <span>Operating System</span>
+                    <strong>{{ session_info.operating_system }}</strong>
+                </article>
+
+                <article class="session-info-item">
+                    <span>Account Created Date</span>
+                    <strong>{{ session_info.account_created }}</strong>
+                </article>
+
+                <article class="session-info-item">
+                    <span>Last Activity</span>
+                    <strong>{{ session_info.last_activity }}</strong>
+                </article>
+            </div>
+        </section>
+
+        <section class="card-surface danger-zone">
+            <div class="section-head compact">
+                <div>
+                    <h2>Danger Zone</h2>
+                    <p>Critical account actions that should be handled carefully.</p>
+                </div>
+            </div>
+
+            <div class="danger-actions">
+                <button type="submit" formaction="{{ url_for('logout_all_devices') }}" formmethod="POST" class="btn btn-danger btn-sm">Logout From All Devices</button>
+                <button type="button" id="openDeleteAccountModal" class="btn btn-danger btn-sm"><i class="fa-solid fa-triangle-exclamation"></i> Delete Account</button>
+            </div>
+        </section>
+
+        <div class="table-actions settings-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="submit" formaction="{{ url_for('reset_preferences') }}" formmethod="POST" class="btn btn-secondary">Reset All Preferences</button>
+            <a href="/profile" class="btn btn-secondary">Back to Profile</a>
+        </div>
+
+    </form>
+
+    <div id="deleteAccountModal" class="modal-overlay delete-account-modal" hidden>
+        <div class="card-surface delete-account-modal-card">
+            <h2><i class="fa-solid fa-triangle-exclamation tone-negative"></i> Delete Account Permanently</h2>
+            <p>This action is permanent and will remove your account with all related financial records.</p>
+
+            <form action="{{ url_for('delete_account') }}" method="POST" id="deleteAccountForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label>Type DELETE to confirm</label>
+                    <input type="text" name="confirm_phrase" id="deleteConfirmPhrase" placeholder="DELETE" required>
+                </div>
+
+                <label class="delete-account-confirm-row">
+                    <input type="checkbox" name="confirm_delete" id="deleteConfirmCheck" value="1">
+                    <span>I understand that account deletion is permanent and cannot be undone.</span>
+                </label>
+
+                <div class="table-actions">
+                    <button type="button" id="cancelDeleteAccount" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="confirmDeleteAccountBtn" class="btn btn-danger" disabled>Delete Permanently</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelectorAll('.toggle-password').forEach(function (icon) {
+        icon.addEventListener('click', function () {
+            const target = document.getElementById(this.dataset.target);
+            if (!target) return;
+            if (target.type === 'password') {
+                target.type = 'text';
+                this.classList.remove('fa-eye');
+                this.classList.add('fa-eye-slash');
+            } else {
+                target.type = 'password';
+                this.classList.remove('fa-eye-slash');
+                this.classList.add('fa-eye');
+            }
+        });
+    });
+
+    const settingsNewPassword = document.getElementById('newPassword');
+    const settingsStrengthBar = document.getElementById('settingsStrengthBar');
+    const settingsStrengthText = document.getElementById('settingsStrengthText');
+
+    if (settingsNewPassword && settingsStrengthBar && settingsStrengthText) {
+        settingsNewPassword.addEventListener('input', function () {
+            const value = this.value;
+            let score = 0;
+            if (value.length >= 8) score += 25;
+            if (/[A-Z]/.test(value)) score += 25;
+            if (/[a-z]/.test(value)) score += 20;
+            if (/[0-9]/.test(value)) score += 15;
+            if (/[^A-Za-z0-9]/.test(value)) score += 15;
+            settingsStrengthBar.style.width = score + '%';
+            if (score < 40) {
+                settingsStrengthBar.style.background = 'var(--danger)';
+                settingsStrengthText.textContent = 'Weak password';
+            } else if (score < 80) {
+                settingsStrengthBar.style.background = 'var(--warning)';
+                settingsStrengthText.textContent = 'Moderate password';
+            } else {
+                settingsStrengthBar.style.background = 'var(--success)';
+                settingsStrengthText.textContent = 'Strong password';
+            }
+        });
+    }
+
+    const deleteModal = document.getElementById('deleteAccountModal');
+    const openDeleteModalBtn = document.getElementById('openDeleteAccountModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteAccount');
+    const deletePhrase = document.getElementById('deleteConfirmPhrase');
+    const deleteCheck = document.getElementById('deleteConfirmCheck');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteAccountBtn');
+
+    function syncDeleteButtonState() {
+        if (!deletePhrase || !deleteCheck || !confirmDeleteBtn) return;
+        const phraseValid = (deletePhrase.value || '').trim().toUpperCase() === 'DELETE';
+        confirmDeleteBtn.disabled = !(phraseValid && deleteCheck.checked);
+    }
+
+    if (openDeleteModalBtn && deleteModal) {
+        openDeleteModalBtn.addEventListener('click', function () {
+            deleteModal.hidden = false;
+        });
+    }
+
+    if (cancelDeleteBtn && deleteModal) {
+        cancelDeleteBtn.addEventListener('click', function () {
+            deleteModal.hidden = true;
+        });
+    }
+
+    if (deletePhrase) {
+        deletePhrase.addEventListener('input', syncDeleteButtonState);
+    }
+
+    if (deleteCheck) {
+        deleteCheck.addEventListener('change', syncDeleteButtonState);
+    }
+
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function (event) {
+            if (event.target === deleteModal) {
+                deleteModal.hidden = true;
+            }
+        });
+    }
+</script>
+{% endblock %}

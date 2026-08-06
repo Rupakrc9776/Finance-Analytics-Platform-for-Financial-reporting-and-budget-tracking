@@ -1,0 +1,15 @@
+{% extends "emails/base.html" %}
+{% set title = "Budget Exceeded Alert" %}
+{% set heading = "Your spending crossed budget" %}
+{% set button_text = "Review Budget" %}
+{% set button_url = url_for('budget', _external=False) %}
+{% block content %}
+<p>Your spending has exceeded your configured monthly budget for {{ month_value }}.</p>
+<ul style="margin:12px 0 0 20px;padding:0;">
+	<li><strong>Total Expense:</strong> Rs. {{ '%.2f'|format(expense_total) }}</li>
+	<li><strong>Monthly Budget:</strong> Rs. {{ '%.2f'|format(budget_total) }}</li>
+	<li><strong>Usage:</strong> {{ '%.2f'|format(budget_percent) }}%</li>
+	<li><strong>Exceeded By:</strong> Rs. {{ '%.2f'|format(exceeded_by) }}</li>
+</ul>
+<p style="margin-top:14px;">Adjust categories or raise budget limits where appropriate.</p>
+{% endblock %}

@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard | Smart Finance Insights
+{% endblock %}
+
+{% block page_title %}
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard fade">
+
+    <div class="welcome">
+
+        <div class="welcome-left">
+
+            <h1>
+                {{ greeting }}, {{ user_name }} 👋
+            </h1>
+
+            <p class="dashboard-date">
+                <i class="fa-solid fa-calendar-days"></i>
+                {{ today }}
+
+                &nbsp;&nbsp;
+
+                <i class="fa-solid fa-clock"></i>
+                {{ current_time }}
+            </p>
+
+            <p>
+                Here's your complete financial overview.
+            </p>
+
+        </div>
+
+        <div class="welcome-right">
+
+            <a href="/expense" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i>
+                Add Expense
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Cards -->
+
+    <div class="cards">
+
+        {% for card in dashboard_cards %}
+        <div class="card" data-card-key="{{ card.key }}">
+            <i class="{{ card.icon }}"></i>
+            <h3>{{ card.title }}</h3>
+            <h2>{{ card.value }}</h2>
+        </div>
+        {% endfor %}
+
+    </div>
+
+    <div class="form-card">
+        <h3>Dashboard Customization</h3>
+        <p>Hide or reorder summary cards. Preferences are saved to your account.</p>
+        <form action="{{ url_for('save_dashboard_preferences') }}" method="POST" id="dashboardPrefForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="card_order" id="cardOrderInput" value="{{ dashboard_card_order|join(',') }}">
+
+            <div class="form-grid form-grid-2">
+                <div class="form-group">
+                    <label>Hide Cards</label>
+                    <div class="toggle-list compact">
+                        {% for card_key in ['income','expense','savings','transactions'] %}
+                        <label class="toggle-card compact-inline">
+                            <span>{{ card_key|replace('_',' ')|title }}</span>
+                            <input type="checkbox" name="hidden_cards" value="{{ card_key }}" {% if card_key in dashboard_hidden_cards %}checked{% endif %}>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Card Order</label>
+                    <ul class="sortable-list" id="dashboardOrderList">
+                        {% for key in dashboard_card_order %}
+                        <li draggable="true" data-card-key="{{ key }}">
+                            <i class="fa-solid fa-grip-lines"></i>
+                            {{ key|replace('_',' ')|title }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <small>Drag items to reorder.</small>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-secondary btn-sm">Save Dashboard Layout</button>
+        </form>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <div class="info-card quick-actions-panel">
+            <h3>Quick Actions</h3>
+            <div class="quick-actions-grid compact">
+                <a href="/expense" class="quick-action"><i class="fa-solid fa-plus"></i> Add Expense</a>
+                <a href="/budget" class="quick-action"><i class="fa-solid fa-chart-pie"></i> Update Budget</a>
+                <a href="/investment" class="quick-action"><i class="fa-solid fa-chart-line"></i> Add Investment</a>
+                <a href="/financial-goals" class="quick-action"><i class="fa-solid fa-bullseye"></i> Manage Goals</a>
+                <a href="/analysis" class="quick-action"><i class="fa-solid fa-brain"></i> AI Insights</a>
+                <a href="/reports" class="quick-action"><i class="fa-solid fa-file-lines"></i> Generate Report</a>
+            </div>
+        </div>
+
+        <div class="info-card financial-overview">
+            <h3>Financial Overview</h3>
+            <div class="summary-row">
+                <span>Budget Utilized</span>
+                <strong>{{ budget_percent }}%</strong>
+            </div>
+            <div class="summary-row">
+                <span>Transactions This Period</span>
+                <strong>{{ transaction_count }}</strong>
+            </div>
+            <div class="summary-row">
+                <span>Total Categories</span>
+                <strong>{{ pie_labels|length }}</strong>
+            </div>
+            <div class="summary-row">
+                <span>Top Expense Category</span>
+                <strong>{% if pie_labels %}{{ pie_labels[0] }}{% else %}No Data{% endif %}</strong>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Dashboard Grid -->
+
+    <div class="dashboard-grid">
+
+        <!-- Bar Chart -->
+
+        <div class="chart-card">
+
+            <div class="chart-head">
+                <h3>Monthly Expense Analysis</h3>
+                <p class="chart-subtitle">Trend of monthly outflow across your selected timeline.</p>
+            </div>
+
+            <div class="chart-viewport">
+                <canvas id="barChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="chart-card">
+
+            <div class="chart-head">
+                <h3>Expense by Category</h3>
+                <p class="chart-subtitle">Category-wise share of total expenses.</p>
+            </div>
+
+            <div class="chart-viewport chart-viewport-tight">
+                <canvas id="pieChart"></canvas>
+            </div>
+
+        </div>
+
+        <div class="chart-card">
+
+            <div class="chart-head">
+                <h3>Income vs Expense</h3>
+                <p class="chart-subtitle">Comparative cash-flow movement month by month.</p>
+            </div>
+
+            <div class="chart-viewport">
+                <canvas id="lineChart"></canvas>
+            </div>
+
+        </div>
+
+        <!-- Budget -->
+
+        <div class="info-card">
+
+            <h3>
+
+                Budget Overview
+
+            </h3>
+
+            <br>
+
+            <h4>
+
+                Budget Used
+
+            </h4>
+
+            <br>
+
+            <div class="progress">
+
+                <div class="progress-bar" data-width="{{ budget_percent }}">
+
+                </div>
+
+            </div>
+
+            <br>
+
+            <p>
+
+                {{ budget_percent }}%
+
+                Used
+
+            </p>
+
+            <br>
+
+            <h4>
+
+                Remaining Budget
+
+            </h4>
+
+            <br>
+
+            <h2>
+
+                ₹ {{ savings }}
+
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <!-- Recent Transactions -->
+
+    <div class="table-card">
+
+        <h3>
+
+            Recent Transactions
+
+        </h3>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Category</th>
+
+                    <th>Amount</th>
+
+                    <th>Date</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for row in recent_expenses %}
+
+                <tr>
+
+                    <td>
+
+                        {{ row[0] }}
+
+                    </td>
+
+                    <td>
+
+                        ₹ {{ "{:,.0f}".format(row[1]) }}
+
+                    </td>
+
+                    <td>
+
+                        {{ row[2] }}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+    const chartPalette = typeof window.getThemeChartPalette === 'function'
+        ? window.getThemeChartPalette()
+        : {
+            series1: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-1').trim(),
+            series2: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-2').trim(),
+            series3: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-3').trim(),
+            series4: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-4').trim(),
+            series5: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-5').trim(),
+            series6: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-6').trim(),
+            series7: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-7').trim(),
+            series8: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-8').trim(),
+            grid: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-grid').trim()
+        };
+    const registerThemeAwareChart = typeof window.registerThemeAwareChart === 'function'
+        ? window.registerThemeAwareChart
+        : null;
+    const themeRgba = typeof window.themeColorToRgba === 'function'
+        ? window.themeColorToRgba
+        : ((color, alpha, fallback) => fallback || color);
+
+    document.querySelectorAll('.progress-bar').forEach(function (bar) {
+        const width = bar.getAttribute('data-width');
+        if (width !== null) {
+            bar.style.width = width + '%';
+        }
+    });
+
+    const pieCtx = document.getElementById("pieChart");
+    const pieLabels = JSON.parse('{{ pie_labels|tojson|safe }}');
+    const pieValues = JSON.parse('{{ pie_values|tojson|safe }}');
+
+    if (pieCtx) {
+        const pieChart = new Chart(pieCtx, {
+            type: "pie",
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieValues,
+                    hoverOffset: 20,
+                    backgroundColor: [
+                        chartPalette.series1,
+                        chartPalette.series2,
+                        chartPalette.series3,
+                        chartPalette.series4,
+                        chartPalette.series5,
+                        chartPalette.series6,
+                        chartPalette.series7,
+                        chartPalette.series8
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                }
+            }
+        });
+
+        if (registerThemeAwareChart) {
+            registerThemeAwareChart(pieChart, (chart, palette) => {
+                chart.data.datasets[0].backgroundColor = [
+                    palette.series1,
+                    palette.series2,
+                    palette.series3,
+                    palette.series4,
+                    palette.series5,
+                    palette.series6,
+                    palette.series7,
+                    palette.series8
+                ];
+            });
+        }
+    }
+
+    const months = JSON.parse('{{ labels|tojson|safe }}');
+    const values = JSON.parse('{{ values|tojson|safe }}');
+    const ctx = document.getElementById("barChart");
+
+    if (ctx) {
+        const barChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: months,
+                datasets: [{
+                    label: "Expenses",
+                    data: values,
+                    backgroundColor: chartPalette.series1,
+                    borderRadius: 8,
+                    maxBarThickness: 55
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: "bottom"
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        if (registerThemeAwareChart) {
+            registerThemeAwareChart(barChart, (chart, palette) => {
+                chart.data.datasets[0].backgroundColor = palette.series1;
+            });
+        }
+    }
+
+    const lineCtx = document.getElementById("lineChart");
+
+    if (lineCtx) {
+        const lineChart = new Chart(lineCtx, {
+            type: "line",
+            data: {
+                labels: JSON.parse('{{ labels|tojson|safe }}'),
+                datasets: [
+                    {
+                        label: "Income",
+                        data: JSON.parse('{{ income_chart|tojson|safe }}'),
+                        borderColor: chartPalette.series2,
+                        backgroundColor: themeRgba(chartPalette.series2, .14),
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        tension: 0.42
+                    },
+                    {
+                        label: "Expense",
+                        data: JSON.parse('{{ expense_chart|tojson|safe }}'),
+                        borderColor: chartPalette.series1,
+                        backgroundColor: themeRgba(chartPalette.series1, .14),
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        tension: 0.42
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: chartPalette.grid
+                        }
+                    }
+                }
+            }
+        });
+
+        if (registerThemeAwareChart) {
+            registerThemeAwareChart(lineChart, (chart, palette, toRgbaColor) => {
+                chart.data.datasets[0].borderColor = palette.series2;
+                chart.data.datasets[0].backgroundColor = toRgbaColor(palette.series2, .14);
+                chart.data.datasets[1].borderColor = palette.series1;
+                chart.data.datasets[1].backgroundColor = toRgbaColor(palette.series1, .14);
+
+                if (chart.options?.scales?.y?.grid) {
+                    chart.options.scales.y.grid.color = palette.grid;
+                }
+            });
+        }
+    }
+</script>
+
+
+{% endblock %}

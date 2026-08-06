@@ -1,0 +1,68 @@
+<footer class="app-footer {{ footer_variant }}">
+
+    <div class="app-footer-inner">
+
+        <div class="footer-brand">
+
+            <h3>Smart Finance Insights</h3>
+
+            <p>AI-powered personal finance and investment management.</p>
+
+        </div>
+
+        <div class="footer-links">
+
+            <h4>Quick Links</h4>
+
+            <a href="/login">Login</a>
+
+            <a href="/register">Register</a>
+
+            <a href="/profile">Profile</a>
+
+        </div>
+
+        <div class="footer-links">
+
+            <h4>Contact</h4>
+
+            {% if current_user and current_user['github_url'] %}
+            <a href="{{ current_user['github_url'] }}" target="_blank" rel="noopener">GitHub</a>
+            {% endif %}
+
+            {% if current_user and current_user['linkedin_url'] %}
+            <a href="{{ current_user['linkedin_url'] }}" target="_blank" rel="noopener">LinkedIn</a>
+            {% endif %}
+
+            {% if current_user and current_user['email'] %}
+            <a href="mailto:{{ current_user['email'] }}">{{ current_user['email'] }}</a>
+            {% endif %}
+
+        </div>
+
+        <div class="footer-user">
+
+            {% if current_user %}
+            {% if current_profile_image %}
+            <img src="{{ current_profile_image }}?v={{ current_profile_image_version }}" alt="Profile picture">
+            {% else %}
+            <span class="footer-user-avatar-initial" aria-label="Profile initial">{{ current_profile_initial }}</span>
+            {% endif %}
+            <div>
+                <h4>{{ current_user['name'] }}</h4>
+                <p>Signed in</p>
+            </div>
+            {% else %}
+            <div>
+                <h4>Smart Finance</h4>
+                <p>Track income, expenses, investments, and goals.</p>
+            </div>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <p class="footer-copy">© 2026 Smart Finance Insights. All rights reserved.</p>
+
+</footer>

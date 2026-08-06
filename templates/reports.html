@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reports | Smart Finance Insights
+{% endblock %}
+
+{% block content %}
+
+<div class="fade report-page">
+
+    <div class="page-heading-wrap no-print">
+        <h1 class="page-heading">Reports</h1>
+        <p class="page-subheading">Generate clean exports and print-ready business reports.</p>
+    </div>
+
+    <div class="cards report-kpi-cards no-print">
+        <div class="card report-kpi-card">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>Total Income</h3>
+            <h2>Rs. {{ '%.2f'|format(income_summary) }}</h2>
+        </div>
+        <div class="card report-kpi-card">
+            <i class="fa-solid fa-money-bill-wave"></i>
+            <h3>Total Expenses</h3>
+            <h2>Rs. {{ '%.2f'|format(expense_summary) }}</h2>
+        </div>
+        <div class="card report-kpi-card">
+            <i class="fa-solid fa-piggy-bank"></i>
+            <h3>Total Savings</h3>
+            <h2>Rs. {{ '%.2f'|format(savings_summary) }}</h2>
+        </div>
+        <div class="card report-kpi-card">
+            <i class="fa-solid fa-receipt"></i>
+            <h3>Transactions</h3>
+            <h2>{{ total_transactions }}</h2>
+        </div>
+
+        <div class="card report-kpi-card">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <h3>Health Score</h3>
+            <h2>{{ health_score.score }}/100</h2>
+            <p class="status-chip {% if health_score.status == 'Excellent' %}success{% elif health_score.status == 'Good' %}info{% elif health_score.status == 'Average' %}warning{% else %}danger{% endif %}">{{ health_score.status }}</p>
+        </div>
+
+        <div class="card report-kpi-card">
+            <i class="fa-solid fa-medal"></i>
+            <h3>Achievements</h3>
+            <h2>{{ achievements.earned_count }}/{{ achievements.total_count }}</h2>
+        </div>
+    </div>
+
+    <div class="form-card report-actions no-print">
+        <h2>Generate Financial Report</h2>
+        <p>Use CSV for data analysis, PDF for official sharing, and print mode for a paper-ready document.</p>
+        <div class="report-action-row">
+            <a href="/export_csv" class="btn btn-success">
+                <i class="fa-solid fa-file-csv"></i>
+                Download CSV Report
+            </a>
+            <a href="/download_pdf" class="btn btn-danger">
+                <i class="fa-solid fa-file-pdf"></i>
+                Download PDF Report
+            </a>
+            <form method="POST" action="{{ url_for('email_report') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    Email Report
+                </button>
+            </form>
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fa-solid fa-print"></i>
+                Print Report
+            </button>
+        </div>
+    </div>
+
+    <section class="table-card report-document print-target">
+        <div class="report-doc-header">
+            <div>
+                <h2>Smart Finance Insights</h2>
+                <p class="report-doc-subtitle">Official Financial Report</p>
+            </div>
+            <div class="report-doc-meta">
+                <p><strong>User:</strong> {{ user['name'] if user else 'N/A' }}</p>
+                <p><strong>Generated:</strong> {{ report_generated_at }}</p>
+            </div>
+        </div>
+
+        <div class="report-stat-grid">
+            <article>
+                <span>Income Summary</span>
+                <strong>Rs. {{ '%.2f'|format(income_summary) }}</strong>
+            </article>
+            <article>
+                <span>Expense Summary</span>
+                <strong>Rs. {{ '%.2f'|format(expense_summary) }}</strong>
+            </article>
+            <article>
+                <span>Savings Summary</span>
+                <strong>Rs. {{ '%.2f'|format(savings_summary) }}</strong>
+            </article>
+            <article>
+                <span>Budget Summary</span>
+                <strong>Rs. {{ '%.2f'|format(budget_summary) }}</strong>
+            </article>
+            <article>
+                <span>Budget Usage</span>
+                <strong>{{ '%.2f'|format(budget_usage_percent) }}%</strong>
+            </article>
+            <article>
+                <span>Investment ROI</span>
+                <strong>{{ '%.2f'|format(investment_summary.roi) }}%</strong>
+            </article>
+            <article>
+                <span>Risk Indicator</span>
+                <strong>{{ ai_insights.risk_indicator }}</strong>
+            </article>
+            <article>
+                <span>Prediction (12M)</span>
+                <strong>Rs. {{ '%.2f'|format(savings_prediction.prediction_12m) }}</strong>
+            </article>
+        </div>
+
+        <div class="report-table-wrap">
+            <h3>Top Recommendations</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Recommendation</th>
+                        <th>Generated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if recommendations %}
+                        {% for row in recommendations[:8] %}
+                        <tr>
+                            <td>{{ row['recommendation_type']|title }}</td>
+                            <td>{{ row['message'] }}</td>
+                            <td>{{ row['generated_on'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="3">No recommendations generated yet.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="report-table-wrap">
+            <h3>Notification Alert Summary</h3>
+            <div class="report-stat-grid">
+                <article>
+                    <span>Info</span>
+                    <strong>{{ priority_counts.info }}</strong>
+                </article>
+                <article>
+                    <span>Success</span>
+                    <strong>{{ priority_counts.success }}</strong>
+                </article>
+                <article>
+                    <span>Warning</span>
+                    <strong>{{ priority_counts.warning }}</strong>
+                </article>
+                <article>
+                    <span>Critical</span>
+                    <strong>{{ priority_counts.danger }}</strong>
+                </article>
+            </div>
+        </div>
+
+        <div class="report-table-wrap">
+            <h3>Expense Category Summary</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Amount (INR)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if category_rows %}
+                        {% for row in category_rows %}
+                        <tr>
+                            <td>{{ row['category'] }}</td>
+                            <td>Rs. {{ '%.2f'|format(row['total_amount']) }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="2">No expense data available.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="report-table-wrap">
+            <h3>Recent Transactions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Amount (INR)</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if expenses %}
+                        {% for row in expenses[:20] %}
+                        <tr>
+                            <td>{{ row['category'] }}</td>
+                            <td>Rs. {{ '%.2f'|format(row['amount']) }}</td>
+                            <td>{{ row['description'] if row['description'] else '-' }}</td>
+                            <td>{{ row['expense_date'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4">No transactions available.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</div>
+
+{% endblock %}

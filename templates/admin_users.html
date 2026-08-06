@@ -1,0 +1,208 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Users | Smart Finance Insights{% endblock %}
+{% block admin_heading %}User Administration{% endblock %}
+
+{% block content %}
+<section class="admin-section-stack">
+    <section class="admin-surface admin-toolbar-surface">
+        <form method="GET" action="{{ url_for('admin_users') }}" class="admin-search-form">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="q" value="{{ search_term }}" placeholder="Search users by name or email">
+            <button type="submit" class="admin-btn primary admin-search-submit">Search</button>
+        </form>
+    </section>
+
+    <section class="admin-users-layout {% if selected_user %}with-detail{% endif %}">
+        <article class="admin-surface admin-table-panel">
+            <div class="admin-panel-head"><h3>Users</h3><span>{{ users|length }} records</span></div>
+            <div class="admin-table-wrap">
+                <table class="admin-table admin-users-table">
+                    <colgroup>
+                        <col style="width: 64px;">
+                        <col style="width: 220px;">
+                        <col style="width: 260px;">
+                        <col style="width: 120px;">
+                        <col style="width: 130px;">
+                        <col style="width: 90px;">
+                        <col style="width: 90px;">
+                        <col style="width: 170px;">
+                        <col style="width: 170px;">
+                        <col style="width: 240px;">
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>Avatar</th>
+                            <th>User Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Transactions</th>
+                            <th>AI Usage</th>
+                            <th>Created</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_row in users %}
+                        <tr>
+                            <td>
+                                <span class="admin-user-avatar">{{ (user_row.name or user_row.email)[0]|upper }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ user_row.name }}</strong>
+                            </td>
+                            <td>
+                                <span class="admin-user-email">{{ user_row.email }}</span>
+                            </td>
+                            <td>
+                                <span class="admin-role-badge {% if user_row.is_developer %}developer{% endif %}">
+                                    {{ 'Developer' if user_row.is_developer else 'User' }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="admin-inline-statuses">
+                                    <span class="admin-chip {% if user_row.email_verified %}success{% else %}warning{% endif %}">{{ 'Verified' if user_row.email_verified else 'Pending' }}</span>
+                                    <span class="admin-chip {% if user_row.is_suspended %}danger{% else %}info{% endif %}">{{ 'Suspended' if user_row.is_suspended else 'Active' }}</span>
+                                </div>
+                            </td>
+                            <td>{{ user_row.transaction_count }}</td>
+                            <td>{{ user_row.ai_requests }}</td>
+                            <td>
+                                <div class="admin-datetime" data-datetime="{{ user_row.created_at or '' }}">
+                                    <span class="date-part">{{ user_row.created_at or 'N/A' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="admin-datetime" data-datetime="{{ user_row.last_login_at or '' }}">
+                                    <span class="date-part">{{ user_row.last_login_at or 'Never' }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="admin-action-desktop">
+                                    <div class="admin-action-cluster">
+                                        <a class="admin-btn subtle admin-action-btn" href="{{ url_for('admin_users', q=search_term, edit=user_row.id) }}">Edit</a>
+                                        <form method="POST" action="{{ url_for('admin_users', q=search_term) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="admin_action" value="suspend">
+                                            <input type="hidden" name="target_user_id" value="{{ user_row.id }}">
+                                            <button type="submit" class="admin-btn warning admin-action-btn">{{ 'Activate' if user_row.is_suspended else 'Suspend' }}</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('admin_users', q=search_term) }}" onsubmit="return confirm('Delete this user and related data?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="admin_action" value="delete">
+                                            <input type="hidden" name="target_user_id" value="{{ user_row.id }}">
+                                            <button type="submit" class="admin-btn danger admin-action-btn">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <details class="admin-action-menu">
+                                    <summary class="admin-btn subtle admin-action-menu-toggle">Actions</summary>
+                                    <div class="admin-action-menu-list">
+                                        <a class="admin-btn subtle" href="{{ url_for('admin_users', q=search_term, edit=user_row.id) }}">Edit</a>
+                                        <form method="POST" action="{{ url_for('admin_users', q=search_term) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="admin_action" value="suspend">
+                                            <input type="hidden" name="target_user_id" value="{{ user_row.id }}">
+                                            <button type="submit" class="admin-btn warning">{{ 'Activate' if user_row.is_suspended else 'Suspend' }}</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('admin_users', q=search_term) }}" onsubmit="return confirm('Delete this user and related data?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="admin_action" value="delete">
+                                            <input type="hidden" name="target_user_id" value="{{ user_row.id }}">
+                                            <button type="submit" class="admin-btn danger">Delete</button>
+                                        </form>
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="10" class="admin-empty-cell">No users matched the current search.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        {% if selected_user %}
+        <aside class="admin-detail-column">
+            <article class="admin-surface">
+                <div class="admin-panel-head"><h3>User Detail</h3><span>ID {{ selected_user.id }}</span></div>
+                <div class="admin-detail-grid">
+                    <div><span>Name</span><strong>{{ selected_user.name }}</strong></div>
+                    <div><span>Email</span><strong>{{ selected_user.email }}</strong></div>
+                    <div><span>Phone</span><strong>{{ selected_user.phone or 'Not set' }}</strong></div>
+                    <div><span>Income</span><strong>Rs. {{ '{:,.0f}'.format(selected_user.income or 0) }}</strong></div>
+                    <div><span>Transactions</span><strong>{{ selected_user.transaction_count }}</strong></div>
+                    <div><span>Total Expense</span><strong>Rs. {{ '{:,.0f}'.format(selected_user.total_expense or 0) }}</strong></div>
+                    <div><span>Goals</span><strong>{{ selected_user.goals_count }}</strong></div>
+                    <div><span>AI Requests</span><strong>{{ selected_user.ai_requests }}</strong></div>
+                    <div><span>Notifications</span><strong>{{ selected_user.notifications_count }}</strong></div>
+                    <div><span>Last Login</span><strong>{{ selected_user.last_login_at or 'Never' }}</strong></div>
+                </div>
+            </article>
+
+            {% if selected_user and edit_user_id == selected_user.id %}
+            <article class="admin-surface">
+                <div class="admin-panel-head"><h3>Edit User</h3><span>{{ selected_user.email }}</span></div>
+                <form method="POST" action="{{ url_for('admin_users', q=search_term) }}" class="admin-form-stack">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="admin_action" value="edit">
+                    <input type="hidden" name="target_user_id" value="{{ selected_user.id }}">
+                    <label>
+                        <span>Full Name</span>
+                        <input type="text" name="name" value="{{ selected_user.name }}" required>
+                    </label>
+                    <label>
+                        <span>Phone</span>
+                        <input type="text" name="phone" value="{{ selected_user.phone or '' }}">
+                    </label>
+                    <label>
+                        <span>Income</span>
+                        <input type="number" step="0.01" name="income" value="{{ selected_user.income or 0 }}">
+                    </label>
+                    <button type="submit" class="admin-btn primary">Save Changes</button>
+                </form>
+            </article>
+            {% endif %}
+        </aside>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    (function () {
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+        const timeFormatter = new Intl.DateTimeFormat('en-US', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+
+        document.querySelectorAll('.admin-datetime').forEach((node) => {
+            const raw = (node.getAttribute('data-datetime') || '').trim();
+            if (!raw) {
+                return;
+            }
+
+            const normalized = raw.replace(' ', 'T').replace('Z', '');
+            const parsed = new Date(normalized);
+            if (Number.isNaN(parsed.getTime())) {
+                return;
+            }
+
+            node.innerHTML = '<span class="date-part">' + dateFormatter.format(parsed) + '</span>' +
+                '<span class="time-part">' + timeFormatter.format(parsed) + '</span>';
+        });
+    })();
+</script>
+{% endblock %}

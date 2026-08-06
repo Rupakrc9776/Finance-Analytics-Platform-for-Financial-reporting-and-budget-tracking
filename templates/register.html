@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register | Smart Finance Insights</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card fade">
+
+        <h1>
+
+            <i class="fa-solid fa-user-plus"></i>
+
+            Create Account
+
+        </h1>
+
+        <p>
+
+            Register to start managing your finances.
+
+        </p>
+
+        {% with messages=get_flashed_messages() %}
+
+        {% if messages %}
+
+        <div class="flash-message">
+
+            {{ messages[0] }}
+
+        </div>
+
+        {% endif %}
+
+        {% endwith %}
+
+        <form action="/register" method="POST" onsubmit="return validateForm()">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+
+                <label>Full Name</label>
+
+                <input type="text" name="name" placeholder="Enter Full Name" required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Email Address</label>
+
+                <input type="email" name="email" placeholder="Enter Email" required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Phone Number</label>
+
+                <input type="tel" name="phone" placeholder="Enter Phone Number" pattern="[0-9]{10}" required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Monthly Income</label>
+
+                <input type="number" name="income" placeholder="Enter Monthly Income" min="0" required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Password</label>
+
+                <div class="password-box">
+
+                    <input type="password" id="password" name="password" placeholder="Create Password" required>
+
+                    <i class="fa-solid fa-eye" id="togglePassword"></i>
+
+                </div>
+
+                <div class="password-strength" aria-live="polite">
+                    <div class="password-strength-bar" id="strengthBar"></div>
+                </div>
+
+                <p class="password-strength-text" id="strengthText">Use a strong password.</p>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Confirm Password</label>
+
+                <div class="password-box">
+
+                    <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm Password" required>
+
+                    <i class="fa-solid fa-eye" id="toggleConfirm"></i>
+
+                </div>
+
+            </div>
+
+            <button class="btn btn-success" type="submit">
+
+                Register
+
+            </button>
+
+        </form>
+
+        <br>
+
+        <p>
+
+            Already have an account?
+
+            <a href="/login">
+
+                Login
+
+            </a>
+
+        </p>
+
+    </div>
+
+    <script>
+
+        function toggle(id, icon) {
+
+            const input = document.getElementById(id);
+
+            const eye = document.getElementById(icon);
+
+            if (input.type === "password") {
+
+                input.type = "text";
+
+                eye.classList.replace("fa-eye", "fa-eye-slash");
+
+            }
+
+            else {
+
+                input.type = "password";
+
+                eye.classList.replace("fa-eye-slash", "fa-eye");
+
+            }
+
+        }
+
+        document.getElementById("togglePassword").onclick = function () {
+
+            toggle("password", "togglePassword");
+
+        }
+
+        document.getElementById("toggleConfirm").onclick = function () {
+
+            toggle("confirmPassword", "toggleConfirm");
+
+        }
+
+        function validateForm() {
+
+            let pass = document.getElementById("password").value;
+
+            let confirm = document.getElementById("confirmPassword").value;
+
+            if (pass !== confirm) {
+
+                alert("Passwords do not match!");
+
+                return false;
+
+            }
+
+            if (pass.length < 6) {
+
+                alert("Password must contain at least 6 characters.");
+
+                return false;
+
+            }
+
+            return true;
+
+        }
+
+        const strengthBar = document.getElementById("strengthBar");
+        const strengthText = document.getElementById("strengthText");
+        const passwordField = document.getElementById("password");
+
+        passwordField.addEventListener("input", function () {
+
+            const value = passwordField.value;
+            let score = 0;
+
+            if (value.length >= 8) score += 25;
+            if (/[A-Z]/.test(value)) score += 25;
+            if (/[a-z]/.test(value)) score += 20;
+            if (/[0-9]/.test(value)) score += 15;
+            if (/[^A-Za-z0-9]/.test(value)) score += 15;
+
+            strengthBar.style.width = score + "%";
+
+            if (score < 40) {
+                strengthBar.style.background = "var(--danger)";
+                strengthText.textContent = "Weak password";
+            } else if (score < 80) {
+                strengthBar.style.background = "var(--warning)";
+                strengthText.textContent = "Moderate password";
+            } else {
+                strengthBar.style.background = "var(--success)";
+                strengthText.textContent = "Strong password";
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>

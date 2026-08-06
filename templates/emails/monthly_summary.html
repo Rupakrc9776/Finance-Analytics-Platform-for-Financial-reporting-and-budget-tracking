@@ -1,0 +1,16 @@
+{% extends "emails/base.html" %}
+{% set title = "Monthly Financial Summary" %}
+{% set heading = "Your monthly finance snapshot" %}
+{% set button_text = "Open Reports" %}
+{% set button_url = url_for('reports', _external=False) %}
+{% block content %}
+<p>Here is your latest Smart Finance Insights monthly summary.</p>
+<ul style="margin:12px 0 0 20px;padding:0;">
+	<li><strong>Income:</strong> Rs. {{ '%.2f'|format(income_summary) }}</li>
+	<li><strong>Expenses:</strong> Rs. {{ '%.2f'|format(expense_summary) }}</li>
+	<li><strong>Savings:</strong> Rs. {{ '%.2f'|format(savings_summary) }}</li>
+	<li><strong>Budget Usage:</strong> {{ '%.2f'|format(budget_usage_percent) }}%</li>
+	<li><strong>Health Score:</strong> {{ health_score.score }}/100 ({{ health_score.status }})</li>
+</ul>
+<p style="margin-top:14px;">Generated on {{ report_generated_at }}.</p>
+{% endblock %}

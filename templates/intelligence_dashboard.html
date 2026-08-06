@@ -1,0 +1,574 @@
+{% extends "base.html" %}
+
+{% block title %}Intelligence Dashboard | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Intelligence Dashboard</h1>
+
+<div class="intelligence-dashboard fade">
+
+    <section class="intelligence-grid cards-grid">
+        <article class="card">
+            <i class="fa-solid fa-heart-pulse"></i>
+            <h3>Financial Health Score</h3>
+            <h2>{{ health_score.score }}/100</h2>
+            <p class="status-chip info">{{ health_score.status }}</p>
+        </article>
+
+        <article class="card">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>Monthly Income</h3>
+            <h2>Rs. {{ "{:,.0f}".format(financial_snapshot.income) }}</h2>
+        </article>
+
+        <article class="card">
+            <i class="fa-solid fa-money-bill-wave"></i>
+            <h3>Monthly Expense</h3>
+            <h2>Rs. {{ "{:,.0f}".format(spending_analysis.total_monthly_expense) }}</h2>
+        </article>
+
+        <article class="card">
+            <i class="fa-solid fa-piggy-bank"></i>
+            <h3>Monthly Savings</h3>
+            <h2>Rs. {{ "{:,.0f}".format(health_score.monthly_savings) }}</h2>
+        </article>
+
+        <article class="card">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h3>Risk Indicator</h3>
+            <h2>{{ ai_insights.risk_indicator }}</h2>
+            <p class="status-chip {% if ai_insights.risk_indicator == 'Low' %}success{% elif ai_insights.risk_indicator == 'Moderate' %}info{% elif ai_insights.risk_indicator == 'Elevated' %}warning{% else %}danger{% endif %}">Rule-Based Intelligence</p>
+        </article>
+    </section>
+
+    <section class="intelligence-grid equal-grid">
+        <article class="card-surface health-gauge-card financial-health-panel">
+            <div class="section-head compact">
+                <div>
+                    <h2>Financial Health</h2>
+                    <p>Savings, expense, and investment efficiency score.</p>
+                </div>
+            </div>
+
+            <div class="health-score-wrap">
+                <div class="gauge-ring" data-score="{{ health_score.score }}">
+                    <div class="gauge-inner">
+                        <strong>{{ health_score.score }}</strong>
+                        <span>{{ health_score.status }}</span>
+                    </div>
+                </div>
+
+                <div class="ratio-list">
+                    <div>
+                        <span>Savings Ratio</span>
+                        <strong>{{ health_score.savings_ratio }}%</strong>
+                    </div>
+                    <div>
+                        <span>Expense Ratio</span>
+                        <strong>{{ health_score.expense_ratio }}%</strong>
+                    </div>
+                    <div>
+                        <span>Investment Ratio</span>
+                        <strong>{{ health_score.investment_ratio }}%</strong>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article class="card-surface budget-recommendations-panel">
+            <div class="section-head compact">
+                <div>
+                    <h2>Budget Recommendations</h2>
+                    <p>Optimized plan from income, budget, and spending history.</p>
+                </div>
+            </div>
+
+            <div class="recommendation-stack">
+                <div class="summary-row">
+                    <span>Current Budget</span>
+                    <strong>Rs. {{ "{:,.0f}".format(budget_recommendations.current_budget) }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Suggested Budget</span>
+                    <strong>Rs. {{ "{:,.0f}".format(budget_recommendations.suggested_budget) }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Budget Utilization</span>
+                    <strong>{{ budget_recommendations.budget_utilization_percent }}%</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Budget Health</span>
+                    <strong>{{ budget_recommendations.budget_health_status }}</strong>
+                </div>
+
+                <ul class="insight-list">
+                    {% for tip in budget_recommendations.recommendations %}
+                    <li>{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </article>
+    </section>
+
+    <section class="intelligence-grid chart-grid-2">
+        <article class="chart-card">
+            <div class="chart-head">
+                <h3>Income vs Expense</h3>
+                <p class="chart-subtitle">Monthly inflow and outflow trend comparison.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="incomeExpenseChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-head">
+                <h3>Savings Trend</h3>
+                <p class="chart-subtitle">Periodic surplus performance over time.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="savingsTrendChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-head">
+                <h3>Expense Distribution</h3>
+                <p class="chart-subtitle">How spending is split across expense categories.</p>
+            </div>
+            <div class="chart-viewport chart-viewport-tight">
+                <canvas id="expenseDistributionChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-head">
+                <h3>Portfolio Overview</h3>
+                <p class="chart-subtitle">Allocation snapshot of all tracked investments.</p>
+            </div>
+            <div class="chart-viewport chart-viewport-tight">
+                <canvas id="portfolioOverviewChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-head">
+                <h3>Financial Timeline</h3>
+                <p class="chart-subtitle">6-month trend for health score and savings growth.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="timelineHealthChart"></canvas>
+            </div>
+        </article>
+
+        <article class="chart-card">
+            <div class="chart-head">
+                <h3>Weekly Spending Trend</h3>
+                <p class="chart-subtitle">Latest spending behavior by week.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="weeklySpendingChart"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="intelligence-grid equal-grid">
+        <article class="table-card analytics-table-panel">
+            <h3>Spending Analysis</h3>
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Total Monthly Expenses</td>
+                    <td>Rs. {{ "{:,.0f}".format(spending_analysis.total_monthly_expense) }}</td>
+                </tr>
+                <tr>
+                    <td>Highest Category</td>
+                    <td>{{ spending_analysis.highest_category.category }} (Rs. {{ "{:,.0f}".format(spending_analysis.highest_category.amount) }})</td>
+                </tr>
+                <tr>
+                    <td>Lowest Category</td>
+                    <td>{{ spending_analysis.lowest_category.category }} (Rs. {{ "{:,.0f}".format(spending_analysis.lowest_category.amount) }})</td>
+                </tr>
+                <tr>
+                    <td>Previous Month Comparison</td>
+                    <td>
+                        Rs. {{ "{:,.0f}".format(spending_analysis.monthly_change_amount) }}
+                        ({{ spending_analysis.monthly_change_percent }}%)
+                    </td>
+                </tr>
+            </table>
+        </article>
+
+        <article class="table-card recent-activity-panel">
+            <h3>AI Recommendations</h3>
+            <p class="ai-summary-text">{{ ai_insights.financial_summary }}</p>
+            <p class="section-note">Top Opportunities:</p>
+            <ul class="insight-list">
+                {% for item in ai_insights.top_opportunities %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            <ul class="insight-list">
+                {% for item in ai_insights.saving_suggestions %}
+                <li>{{ item }}</li>
+                {% endfor %}
+                {% for item in ai_insights.investment_suggestions %}
+                <li>{{ item }}</li>
+                {% endfor %}
+                {% for item in ai_insights.spending_tips %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </article>
+    </section>
+
+    <section class="intelligence-grid equal-grid">
+        <article class="table-card savings-prediction-panel">
+            <h3>Notifications</h3>
+            <p class="section-note">Unread: {{ unread_count }}</p>
+            <ul class="notification-history-list compact">
+                {% if notifications %}
+                {% for item in notifications[:8] %}
+                <li class="{% if item['is_read'] == 0 %}unread{% endif %}">
+                    <strong>{{ item['title'] }}</strong>
+                    <span class="status-chip {{ item['priority'] or 'info' }}">{{ (item['priority'] or 'info')|title }}</span>
+                    <p>{{ item['message'] }}</p>
+                    <small>{{ item['created_at'] }}</small>
+                </li>
+                {% endfor %}
+                {% else %}
+                <li>No notifications available.</li>
+                {% endif %}
+            </ul>
+            <a href="{{ url_for('notifications_history') }}" class="btn btn-secondary btn-sm">View Full History</a>
+        </article>
+
+        <article class="table-card">
+            <h3>Recent Financial Activity</h3>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Title</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                </tr>
+                {% if recent_activity %}
+                {% for row in recent_activity %}
+                <tr>
+                    <td>{{ row['activity_type'] }}</td>
+                    <td>{{ row['title'] }}</td>
+                    <td>Rs. {{ "{:,.0f}".format(row['amount']|float) }}</td>
+                    <td>{{ row['activity_date'] or '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">No activity available.</td>
+                </tr>
+                {% endif %}
+            </table>
+        </article>
+    </section>
+
+    <section class="intelligence-grid equal-grid">
+        <article class="table-card">
+            <h3>Savings Prediction</h3>
+            <table>
+                <tr><th>Window</th><th>Projected Savings</th></tr>
+                <tr><td>Current Monthly</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.current_savings) }}</td></tr>
+                <tr><td>3 Months</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.prediction_3m) }}</td></tr>
+                <tr><td>6 Months</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.prediction_6m) }}</td></tr>
+                <tr><td>12 Months</td><td>Rs. {{ "{:,.0f}".format(savings_prediction.prediction_12m) }}</td></tr>
+                <tr><td>Goal ETA</td><td>{{ savings_prediction.expected_goal_achievement_date }}</td></tr>
+            </table>
+        </article>
+
+        <article class="table-card">
+            <h3>Achievements</h3>
+            <p class="section-note">Unlocked {{ achievements.earned_count }} of {{ achievements.total_count }}</p>
+            <ul class="insight-list">
+                {% for badge in achievements['items'][:6] %}
+                <li>
+                    <strong>{{ badge.title }}</strong> - {{ badge.progress }}%
+                    {% if badge.is_unlocked %}
+                    <span class="status-chip success">Unlocked</span>
+                    {% else %}
+                    <span class="status-chip neutral">In Progress</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </article>
+    </section>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Chart === 'undefined') {
+        return;
+    }
+
+    const trendLabels = {{ spending_analysis.monthly_trend_labels|tojson }};
+    const expenseTrend = {{ spending_analysis.monthly_trend_values|tojson }};
+    const incomeTrend = {{ income_trend|tojson }};
+    const savingsTrend = {{ savings_trend|tojson }};
+
+    const expenseCategories = {{ spending_analysis.category_breakdown|map(attribute='category')|list|tojson }};
+    const expenseCategoryValues = {{ spending_analysis.category_breakdown|map(attribute='amount')|list|tojson }};
+
+    const portfolioLabels = {{ portfolio_labels|tojson }};
+    const portfolioValues = {{ portfolio_values|tojson }};
+    const timelineLabels = {{ timeline.labels|tojson }};
+    const timelineHealthScores = {{ timeline.health_scores|tojson }};
+    const timelineSavingsGrowth = {{ timeline.savings_growth|tojson }};
+    const weeklyLabels = {{ spending_analysis.weekly_trend_labels|tojson }};
+    const weeklyValues = {{ spending_analysis.weekly_trend_values|tojson }};
+    const palette = typeof window.getThemeChartPalette === 'function'
+        ? window.getThemeChartPalette()
+        : {
+            series1: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-1').trim(),
+            series2: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-2').trim(),
+            series3: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-3').trim(),
+            series4: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-4').trim(),
+            series5: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-5').trim(),
+            series6: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-6').trim(),
+            series7: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-7').trim(),
+            series8: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-8').trim()
+        };
+    const themeRgba = typeof window.themeColorToRgba === 'function'
+        ? window.themeColorToRgba
+        : ((color, alpha, fallback) => fallback || color);
+    const registerThemeAwareChart = typeof window.registerThemeAwareChart === 'function'
+        ? window.registerThemeAwareChart
+        : null;
+
+    const incomeExpenseChart = new Chart(document.getElementById('incomeExpenseChart'), {
+        type: 'line',
+        data: {
+            labels: trendLabels,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: incomeTrend,
+                    borderColor: palette.series1,
+                    backgroundColor: themeRgba(palette.series1, .12),
+                    fill: true,
+                    tension: 0.35
+                },
+                {
+                    label: 'Expense',
+                    data: expenseTrend,
+                    borderColor: palette.series4,
+                    backgroundColor: themeRgba(palette.series4, .1),
+                    fill: true,
+                    tension: 0.35
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(incomeExpenseChart, (chart, p, toRgbaColor) => {
+            chart.data.datasets[0].borderColor = p.series1;
+            chart.data.datasets[0].backgroundColor = toRgbaColor(p.series1, .12);
+            chart.data.datasets[1].borderColor = p.series4;
+            chart.data.datasets[1].backgroundColor = toRgbaColor(p.series4, .1);
+        });
+    }
+
+    const savingsTrendChart = new Chart(document.getElementById('savingsTrendChart'), {
+        type: 'bar',
+        data: {
+            labels: trendLabels,
+            datasets: [{
+                label: 'Savings',
+                data: savingsTrend,
+                backgroundColor: palette.series7,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(savingsTrendChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = p.series7;
+        });
+    }
+
+    const expenseDistributionChart = new Chart(document.getElementById('expenseDistributionChart'), {
+        type: 'doughnut',
+        data: {
+            labels: expenseCategories,
+            datasets: [{
+                data: expenseCategoryValues,
+                backgroundColor: [
+                    palette.series1,
+                    palette.series7,
+                    palette.series3,
+                    palette.series4,
+                    palette.series5,
+                    palette.series6,
+                    palette.series2,
+                    palette.series8
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(expenseDistributionChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = [
+                p.series1,
+                p.series7,
+                p.series3,
+                p.series4,
+                p.series5,
+                p.series6,
+                p.series2,
+                p.series8
+            ];
+        });
+    }
+
+    const portfolioOverviewChart = new Chart(document.getElementById('portfolioOverviewChart'), {
+        type: 'pie',
+        data: {
+            labels: portfolioLabels,
+            datasets: [{
+                data: portfolioValues,
+                backgroundColor: [
+                    palette.series1,
+                    palette.series6,
+                    palette.series7,
+                    palette.series2,
+                    palette.series3,
+                    palette.series4,
+                    palette.series5
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(portfolioOverviewChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = [
+                p.series1,
+                p.series6,
+                p.series7,
+                p.series2,
+                p.series3,
+                p.series4,
+                p.series5
+            ];
+        });
+    }
+
+    const timelineHealthChart = new Chart(document.getElementById('timelineHealthChart'), {
+        type: 'line',
+        data: {
+            labels: timelineLabels,
+            datasets: [
+                {
+                    label: 'Health Score',
+                    data: timelineHealthScores,
+                    borderColor: palette.series7,
+                    backgroundColor: themeRgba(palette.series7, .12),
+                    yAxisID: 'y',
+                    tension: 0.3
+                },
+                {
+                    label: 'Savings',
+                    data: timelineSavingsGrowth,
+                    borderColor: palette.series1,
+                    backgroundColor: themeRgba(palette.series1, .12),
+                    yAxisID: 'y1',
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } },
+            scales: {
+                y: { position: 'left', suggestedMin: 0, suggestedMax: 100 },
+                y1: { position: 'right', grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(timelineHealthChart, (chart, p, toRgbaColor) => {
+            chart.data.datasets[0].borderColor = p.series7;
+            chart.data.datasets[0].backgroundColor = toRgbaColor(p.series7, .12);
+            chart.data.datasets[1].borderColor = p.series1;
+            chart.data.datasets[1].backgroundColor = toRgbaColor(p.series1, .12);
+        });
+    }
+
+    const weeklySpendingChart = new Chart(document.getElementById('weeklySpendingChart'), {
+        type: 'bar',
+        data: {
+            labels: weeklyLabels,
+            datasets: [{
+                label: 'Weekly Expense',
+                data: weeklyValues,
+                backgroundColor: palette.series8,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(weeklySpendingChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = p.series8;
+        });
+    }
+});
+</script>
+{% endblock %}

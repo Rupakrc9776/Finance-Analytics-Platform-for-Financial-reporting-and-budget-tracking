@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Feed | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Recent Activity Feed</h1>
+
+<div class="table-card fade">
+    <p class="section-note">Newest actions appear first across expenses, goals, reports, profile, and login sessions.</p>
+
+    <ul class="notification-history-list">
+        {% if activities %}
+            {% for activity in activities %}
+            <li>
+                <div>
+                    <strong><i class="{{ activity.icon }}"></i> {{ activity.title }}</strong>
+                    <p>{{ activity.description }}</p>
+                    <small>{{ activity.time_ago }} • {{ activity.created_at }} • {{ activity.activity_type|replace('_', ' ')|title }}</small>
+                </div>
+                {% if activity.related_route %}
+                <a href="{{ activity.related_route }}" class="btn btn-secondary btn-sm">Open</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        {% else %}
+            <li>No activities available yet.</li>
+        {% endif %}
+    </ul>
+</div>
+
+{% endblock %}

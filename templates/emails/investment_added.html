@@ -1,0 +1,14 @@
+{% extends "emails/base.html" %}
+{% set title = "Investment Added" %}
+{% set heading = "Investment recorded successfully" %}
+{% set button_text = "Open Portfolio" %}
+{% set button_url = url_for('investment', _external=False) %}
+{% block content %}
+<p>Your investment entry has been added to your portfolio.</p>
+<ul style="margin:12px 0 0 20px;padding:0;">
+	<li><strong>Name:</strong> {{ investment_name }}</li>
+	<li><strong>Asset:</strong> {{ asset_name }}</li>
+	<li><strong>Invested Amount:</strong> Rs. {{ '%.2f'|format(invested_amount) }}</li>
+	<li><strong>Current Value:</strong> Rs. {{ '%.2f'|format(current_value) }}</li>
+</ul>
+{% endblock %}

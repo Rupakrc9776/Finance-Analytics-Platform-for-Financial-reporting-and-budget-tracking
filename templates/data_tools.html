@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Data Tools | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Data Import / Export Tools</h1>
+
+<div class="dashboard-grid fade data-tools-page">
+    <section class="form-card data-tools-import-panel">
+        <h3>Import Data</h3>
+        <p>Import validated financial records from CSV or Excel.</p>
+
+        <form action="{{ url_for('data_tools') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="import_csv">
+            <div class="form-group">
+                <label>CSV File</label>
+                <input type="file" name="data_file" accept=".csv" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">Import CSV</button>
+        </form>
+
+        <hr class="theme-divider">
+
+        <form action="{{ url_for('data_tools') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="import_excel">
+            <div class="form-group">
+                <label>Excel File</label>
+                <input type="file" name="data_file" accept=".xlsx,.xlsm,.xltx,.xltm" required>
+            </div>
+            <button type="submit" class="btn btn-secondary btn-sm">Import Excel</button>
+        </form>
+    </section>
+
+    <section class="form-card data-tools-export-panel">
+        <h3>Export & Backup</h3>
+        <p>Download reports and backup data in multiple formats.</p>
+
+        <div class="quick-actions-grid compact">
+            <a href="{{ url_for('export_csv') }}" class="quick-action"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a href="{{ url_for('download_pdf') }}" class="quick-action"><i class="fa-solid fa-file-pdf"></i> Export PDF</a>
+            <a href="{{ url_for('export_json') }}" class="quick-action"><i class="fa-solid fa-file-code"></i> Export JSON</a>
+            <a href="{{ url_for('backup_sqlite') }}" class="quick-action"><i class="fa-solid fa-database"></i> SQLite Backup</a>
+        </div>
+
+        <hr class="theme-divider">
+
+        <form action="{{ url_for('data_tools') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="restore_backup">
+            <div class="form-group">
+                <label>Restore SQLite Backup (.db)</label>
+                <input type="file" name="data_file" accept=".db" required>
+            </div>
+            <button type="submit" class="btn btn-danger btn-sm">Restore Backup</button>
+        </form>
+    </section>
+</div>
+
+{% endblock %}

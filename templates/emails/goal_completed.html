@@ -1,0 +1,13 @@
+{% extends "emails/base.html" %}
+{% set title = "Goal Completed" %}
+{% set heading = "Congratulations on your milestone" %}
+{% set button_text = "View Financial Goals" %}
+{% set button_url = url_for('financial_goals', _external=False) %}
+{% block content %}
+<p>Great work. You have completed one of your financial goals.</p>
+<ul style="margin:12px 0 0 20px;padding:0;">
+	<li><strong>Goal:</strong> {{ goal_name }}</li>
+	<li><strong>Target Amount:</strong> Rs. {{ '%.2f'|format(target_amount) }}</li>
+</ul>
+<p style="margin-top:14px;">Keep going and set your next milestone to maintain momentum.</p>
+{% endblock %}

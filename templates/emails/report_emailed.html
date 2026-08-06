@@ -1,0 +1,12 @@
+{% extends "emails/base.html" %}
+{% set title = "Report Emailed" %}
+{% set heading = "Report sent to your email" %}
+{% set button_text = "Open Reports" %}
+{% set button_url = url_for('reports', _external=False) %}
+{% block content %}
+<p>Your latest Smart Finance Insights report has been emailed with the PDF attachment.</p>
+<ul style="margin:12px 0 0 20px;padding:0;">
+	<li><strong>Report ID:</strong> {{ report_id }}</li>
+	<li><strong>Generated At:</strong> {{ report_generated_at }}</li>
+</ul>
+{% endblock %}

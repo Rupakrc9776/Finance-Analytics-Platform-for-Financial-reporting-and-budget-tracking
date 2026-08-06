@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}
+Budget Planner | Smart Finance Insights
+{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">
+    Budget Planner
+</h1>
+
+<div class="fade budget-page">
+
+    <!-- Budget Overview Cards -->
+
+    <div class="cards">
+
+        <div class="card budget-stat-card">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>Current Budget</h3>
+            <h2>₹ {{ "{:,.0f}".format(monthly_budget) }}</h2>
+        </div>
+
+        <div class="card budget-alert-card budget-stat-card">
+            <i class="fa-solid fa-chart-column"></i>
+            <h3>Budget Status</h3>
+            {% if budget_percent > 100 %}
+            <h2 class="tone-negative">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Budget Exceeded
+            </h2>
+            <span class="status-chip danger">Danger</span>
+            {% else %}
+            <h2 class="tone-positive">
+                <i class="fa-solid fa-circle-check"></i>
+                Budget Healthy
+            </h2>
+            <span class="status-chip success">Healthy</span>
+            {% endif %}
+        </div>
+
+        <div class="card budget-stat-card">
+            <i class="fa-solid fa-chart-pie"></i>
+            <h3>Budget Used</h3>
+            <h2>{{ budget_percent }}%</h2>
+        </div>
+
+        <div class="card budget-stat-card">
+            <i class="fa-solid fa-calendar"></i>
+            <h3>Monthly Plan</h3>
+            <h2>Enabled</h2>
+        </div>
+
+        <div class="card budget-stat-card budget-remaining-card">
+            <i class="fa-solid fa-piggy-bank"></i>
+            <h3>Remaining Budget</h3>
+            {% if remaining_budget > 0 %}
+            <h2 class="tone-positive">
+                ₹ {{ "{:,.0f}".format(remaining_budget) }}
+            </h2>
+            {% else %}
+            <h2 class="tone-negative">₹ 0</h2>
+            {% endif %}
+        </div>
+
+        <div class="card budget-usage-card budget-stat-card">
+            <i class="fa-solid fa-gauge-high"></i>
+            <h3>Budget Usage</h3>
+
+            {% set budget_fill_width = budget_percent if budget_percent <= 100 else 100 %}
+            <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                aria-valuenow="{{ budget_percent }}">
+                <progress class="budget-progress" value="{{ budget_fill_width }}" max="100"></progress>
+            </div>
+
+            <p>
+                <strong>{{ budget_percent }}%</strong> of your monthly budget has been used.
+            </p>
+        </div>
+
+        <div class="card budget-goal-card budget-stat-card">
+            <i class="fa-solid fa-shield-halved"></i>
+            <h3>Financial Goal</h3>
+            {% if budget_percent > 100 %}
+            <h2 class="tone-negative">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Take Action
+            </h2>
+            <span class="status-chip danger">Warning</span>
+            {% else %}
+            <h2 class="tone-positive">
+                <i class="fa-solid fa-circle-check"></i>
+                On Track
+            </h2>
+            <span class="status-chip success">Excellent</span>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Budget Form -->
+
+    <div class="form-card">
+        <h2>Set Monthly Budget</h2>
+
+        <form action="/save_budget" method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label>Budget Amount</label>
+                <input type="number" name="budget" placeholder="Enter Monthly Budget" min="0" required>
+            </div>
+
+            <div class="form-group">
+                <label>Budget Date</label>
+                <input type="date" id="budgetDateInput" class="budget-date-input" placeholder="dd-mm-yyyy" lang="en-GB" required>
+                <input type="hidden" id="budgetMonthValue" name="month" required>
+            </div>
+
+            <button class="btn btn-primary" type="submit">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Save Budget
+            </button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    (function () {
+        const budgetDateInput = document.getElementById('budgetDateInput');
+        const budgetMonthValue = document.getElementById('budgetMonthValue');
+        if (!budgetDateInput || !budgetMonthValue) {
+            return;
+        }
+
+        const today = new Date();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const isoDate = today.getFullYear() + '-' + month + '-' + day;
+
+        budgetDateInput.value = isoDate;
+        budgetMonthValue.value = today.getFullYear() + '-' + month;
+
+        budgetDateInput.addEventListener('change', function () {
+            if (!budgetDateInput.value) {
+                budgetMonthValue.value = '';
+                return;
+            }
+
+            const parts = budgetDateInput.value.split('-');
+            if (parts.length >= 2) {
+                budgetMonthValue.value = parts[0] + '-' + parts[1];
+            }
+        });
+    })();
+</script>
+{% endblock %}

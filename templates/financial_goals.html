@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Goals | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Financial Goals</h1>
+
+<div class="fade financial-goals-page">
+
+    <div class="cards">
+
+        <div class="card">
+            <i class="fa-solid fa-bullseye"></i>
+            <h3>Total Goals</h3>
+            <h2>{{ goal_summary.total_goals }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-circle-check"></i>
+            <h3>Completed Goals</h3>
+            <h2>{{ goal_summary.completed_goals }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-spinner"></i>
+            <h3>Active Goals</h3>
+            <h2>{{ goal_summary.active_goals }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-chart-simple"></i>
+            <h3>Overall Progress</h3>
+            <h2>{{ goal_summary.overall_progress }}%</h2>
+        </div>
+
+    </div>
+
+    <div class="form-card">
+        {% if edit_goal %}
+        <h2>Edit Goal</h2>
+        <form method="POST" action="/edit_goal/{{ edit_goal.id }}">
+        {% else %}
+        <h2>Add Goal</h2>
+        <form method="POST" action="/financial-goals">
+        {% endif %}
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Goal Name</label>
+                    <input type="text" name="goal_name" required value="{{ edit_goal.goal_name if edit_goal else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Target Amount</label>
+                    <input type="number" step="0.01" name="target_amount" required value="{{ edit_goal.target_amount if edit_goal else '' }}">
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Saved Amount</label>
+                    <input type="number" step="0.01" name="saved_amount" required value="{{ edit_goal.saved_amount if edit_goal else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" name="target_date" value="{{ edit_goal.target_date if edit_goal else '' }}">
+                </div>
+            </div>
+
+            <div class="table-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if edit_goal %}Update Goal{% else %}Add Goal{% endif %}
+                </button>
+
+                {% if edit_goal %}
+                <a href="/financial-goals" class="btn btn-secondary">Cancel</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Goal Progress</h3>
+        <table class="goal-table">
+            <tr>
+                <th>Goal</th>
+                <th>Target</th>
+                <th>Saved</th>
+                <th>Remaining</th>
+                <th>Progress</th>
+                <th>Target Date</th>
+                <th>Action</th>
+            </tr>
+            {% if goals %}
+            {% for goal in goals %}
+            <tr>
+                <td>{{ goal.goal_name }}</td>
+                <td>₹ {{ "{:,.0f}".format(goal.target_amount) }}</td>
+                <td>₹ {{ "{:,.0f}".format(goal.saved_amount) }}</td>
+                <td>₹ {{ "{:,.0f}".format(goal.remaining_amount) }}</td>
+                <td class="goal-progress-cell">
+                    <div class="progress goal-progress">
+                        <div data-width="{{ goal.progress_width }}"></div>
+                    </div>
+                    <span>{{ goal.completion_percentage }}%</span>
+                </td>
+                <td>{{ goal.target_date or '-' }}</td>
+                <td class="goal-actions-cell action">
+                    <div class="goal-actions-wrap">
+                    <a href="/edit_goal/{{ goal.id }}" class="btn btn-sm goal-action-btn goal-action-edit"><i class="fa-solid fa-pencil"></i> Edit</a>
+                    <form action="/delete_goal/{{ goal.id }}" method="POST" onsubmit="return confirm('Delete this goal?')" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm goal-action-btn goal-action-delete"><i class="fa-solid fa-trash"></i> Delete</button>
+                    </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7">No goals added yet.</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

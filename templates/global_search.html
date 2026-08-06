@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Global Search | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Global Search</h1>
+
+<div class="table-card fade">
+    <form action="{{ url_for('global_search') }}" method="GET" class="form-grid form-grid-2">
+        <div class="form-group">
+            <label>Search Query</label>
+            <input type="text" name="q" value="{{ query_text }}" placeholder="Search expenses, goals, investments, reports, notifications..." required>
+        </div>
+        <div class="form-group align-bottom">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    {% if query_text %}
+    <p class="section-note">Results for "{{ query_text }}" ({{ results|length }} found)</p>
+    {% endif %}
+
+    <ul class="notification-history-list">
+        {% if results %}
+            {% for item in results %}
+            <li>
+                <div>
+                    <strong><i class="{{ item.icon }}"></i> {{ item.title }}</strong>
+                    <p>{{ item.description }}</p>
+                    <small>{{ item.type }}</small>
+                </div>
+                <a href="{{ item.url }}" class="btn btn-secondary btn-sm">Open</a>
+            </li>
+            {% endfor %}
+        {% elif query_text %}
+            <li>No matching results found.</li>
+        {% else %}
+            <li>Start typing a query to search across your financial workspace.</li>
+        {% endif %}
+    </ul>
+</div>
+
+{% endblock %}

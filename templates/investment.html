@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Investment Portfolio{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Investment Portfolio</h1>
+
+<div class="fade">
+
+    <div class="cards">
+
+        <div class="card">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>Total Investment</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.total_investment) }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-chart-line"></i>
+            <h3>Current Portfolio Value</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.current_value) }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-circle-arrow-up"></i>
+            <h3>Overall Profit/Loss</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.total_profit) }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-percent"></i>
+            <h3>ROI</h3>
+            <h2>{{ summary.roi }}%</h2>
+        </div>
+
+    </div>
+
+    <div class="form-card">
+        <h2>Search & Filter</h2>
+        <form method="GET" action="/investment" class="portfolio-filter-form">
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Search</label>
+                    <input type="text" name="keyword" placeholder="Investment name or asset" value="{{ keyword }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Asset Type</label>
+                    <select name="asset">
+                        <option value="">All Assets</option>
+                        <option value="Stocks" {% if asset_filter == 'Stocks' %}selected{% endif %}>Stocks</option>
+                        <option value="Mutual Fund" {% if asset_filter == 'Mutual Fund' %}selected{% endif %}>Mutual Fund</option>
+                        <option value="Gold" {% if asset_filter == 'Gold' %}selected{% endif %}>Gold</option>
+                        <option value="Fixed Deposit" {% if asset_filter == 'Fixed Deposit' %}selected{% endif %}>Fixed Deposit</option>
+                        <option value="Real Estate" {% if asset_filter == 'Real Estate' %}selected{% endif %}>Real Estate</option>
+                        <option value="Bond" {% if asset_filter == 'Bond' %}selected{% endif %}>Bond</option>
+                        <option value="Cryptocurrency" {% if asset_filter == 'Cryptocurrency' %}selected{% endif %}>Cryptocurrency</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Apply Filter
+                </button>
+
+                <a href="/investment" class="btn btn-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="form-card">
+        {% if edit_investment %}
+        <h2>Edit Investment</h2>
+        <form method="POST" action="/edit_investment/{{ edit_investment.id }}">
+        {% else %}
+        <h2>Add Investment</h2>
+        <form method="POST" action="/investment">
+        {% endif %}
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Asset Type</label>
+                    <select name="asset" required>
+                        <option value="Stocks" {% if edit_investment and edit_investment.asset == 'Stocks' %}selected{% endif %}>Stocks</option>
+                        <option value="Mutual Fund" {% if edit_investment and edit_investment.asset == 'Mutual Fund' %}selected{% endif %}>Mutual Fund</option>
+                        <option value="Gold" {% if edit_investment and edit_investment.asset == 'Gold' %}selected{% endif %}>Gold</option>
+                        <option value="Fixed Deposit" {% if edit_investment and edit_investment.asset == 'Fixed Deposit' %}selected{% endif %}>Fixed Deposit</option>
+                        <option value="Real Estate" {% if edit_investment and edit_investment.asset == 'Real Estate' %}selected{% endif %}>Real Estate</option>
+                        <option value="Bond" {% if edit_investment and edit_investment.asset == 'Bond' %}selected{% endif %}>Bond</option>
+                        <option value="Cryptocurrency" {% if edit_investment and edit_investment.asset == 'Cryptocurrency' %}selected{% endif %}>Cryptocurrency</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Investment Name</label>
+                    <input type="text" name="investment_name" required value="{{ edit_investment.investment_name if edit_investment else '' }}">
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Invested Amount</label>
+                    <input type="number" step="0.01" name="invested_amount" required value="{{ edit_investment.invested_amount if edit_investment else '' }}">
+                </div>
+
+                <div class="form-group">
+                    <label>Current Value</label>
+                    <input type="number" step="0.01" name="current_value" required value="{{ edit_investment.current_value if edit_investment else '' }}">
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <div class="form-group">
+                    <label>Purchase Date</label>
+                    <input type="date" name="purchase_date" value="{{ edit_investment.purchase_date if edit_investment else '' }}">
+                </div>
+
+                <div class="form-group align-bottom">
+                    <button type="submit" class="btn btn-primary">
+                        {% if edit_investment %}
+                        Update Investment
+                        {% else %}
+                        Add Investment
+                        {% endif %}
+                    </button>
+
+                    {% if edit_investment %}
+                    <a href="/investment" class="btn btn-secondary">Cancel</a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Investment Summary</h3>
+        <table>
+            <tr>
+                <th>Asset</th>
+                <th>Name</th>
+                <th>Invested</th>
+                <th>Current</th>
+                <th>Profit/Loss</th>
+                <th>ROI %</th>
+                <th>Purchase Date</th>
+                <th>Action</th>
+            </tr>
+            {% if investments %}
+            {% for investment in investments %}
+            <tr>
+                <td>{{ investment.asset }}</td>
+                <td>{{ investment.investment_name }}</td>
+                <td>₹ {{ "{:,.0f}".format(investment.invested_amount) }}</td>
+                <td>₹ {{ "{:,.0f}".format(investment.current_value) }}</td>
+                {% if investment.profit >= 0 %}
+                <td class="tone-positive">₹ {{ "{:,.0f}".format(investment.profit) }}</td>
+                {% else %}
+                <td class="tone-negative">₹ {{ "{:,.0f}".format(investment.profit) }}</td>
+                {% endif %}
+                <td>{{ investment.roi }}%</td>
+                <td>{{ investment.purchase_date or '-' }}</td>
+                <td class="table-actions">
+                    <a href="/edit_investment/{{ investment.id }}" class="btn btn-primary btn-sm">Edit</a>
+                    <form action="/delete_investment/{{ investment.id }}" method="POST" onsubmit="return confirm('Delete this investment?')" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="8">No investments found.</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

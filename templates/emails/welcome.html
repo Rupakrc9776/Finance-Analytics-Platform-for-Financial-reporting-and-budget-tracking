@@ -1,0 +1,8 @@
+{% extends "emails/base.html" %}
+{% set title = "Welcome to Smart Finance Insights" %}
+{% set heading = "Welcome aboard" %}
+{% set button_text = "Open Dashboard" %}
+{% set button_url = url_for('login', _external=False) %}
+{% block content %}
+<p>Your account has been created successfully. You can now track finances, manage investments, and review your goals from one secure place.</p>
+{% endblock %}

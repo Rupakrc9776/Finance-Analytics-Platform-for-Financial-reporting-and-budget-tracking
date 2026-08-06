@@ -1,0 +1,113 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Analytics | Smart Finance Insights{% endblock %}
+{% block admin_heading %}Analytics and AI Usage{% endblock %}
+
+{% block content %}
+<section class="admin-section-stack">
+    <section class="admin-card-grid admin-card-grid-4">
+        <article class="admin-stat-card"><span>Total Users</span><strong>{{ metrics.total_users }}</strong></article>
+        <article class="admin-stat-card"><span>Active Users</span><strong>{{ metrics.active_users }}</strong></article>
+        <article class="admin-stat-card"><span>Total Transactions</span><strong>{{ metrics.total_transactions }}</strong></article>
+        <article class="admin-stat-card accent"><span>AI Requests Today</span><strong>{{ metrics.ai_requests_today }}</strong></article>
+    </section>
+
+    <section class="admin-chart-grid admin-chart-grid-2">
+        <article class="admin-surface admin-chart-panel">
+            <div class="admin-panel-head"><h3>Daily Registrations</h3><span>Last 7 days</span></div>
+            <div class="admin-chart-canvas-wrap">
+                <canvas id="analyticsDailyRegistrations"></canvas>
+            </div>
+        </article>
+        <article class="admin-surface admin-chart-panel">
+            <div class="admin-panel-head"><h3>Monthly Users</h3><span>Last 6 months</span></div>
+            <div class="admin-chart-canvas-wrap">
+                <canvas id="analyticsMonthlyUsers"></canvas>
+            </div>
+        </article>
+        <article class="admin-surface admin-chart-panel">
+            <div class="admin-panel-head"><h3>Expense Analytics</h3><span>Top categories</span></div>
+            <div class="admin-chart-canvas-wrap radial">
+                <canvas id="analyticsExpenseBreakdown"></canvas>
+            </div>
+        </article>
+        <article class="admin-surface admin-chart-panel" id="ai-usage">
+            <div class="admin-panel-head"><h3>AI Usage</h3><span>Total requests {{ ai_summary.total_requests or 0 }}</span></div>
+            <div class="admin-chart-canvas-wrap">
+                <canvas id="analyticsAiUsage"></canvas>
+            </div>
+        </article>
+    </section>
+
+    <section class="admin-content-grid admin-content-grid-tight">
+        <article class="admin-surface">
+            <div class="admin-panel-head"><h3>AI Summary</h3><span>Jarvis usage snapshot</span></div>
+            <div class="admin-key-value-list">
+                <div><span>Total requests</span><strong>{{ ai_summary.total_requests or 0 }}</strong></div>
+                <div><span>Unique users</span><strong>{{ ai_summary.unique_users or 0 }}</strong></div>
+                <div><span>Last request</span><strong>{{ ai_summary.last_request_at or 'No traffic yet' }}</strong></div>
+            </div>
+        </article>
+
+        <article class="admin-surface">
+            <div class="admin-panel-head"><h3>Top AI Users</h3><span>Most requests</span></div>
+            <div class="admin-mini-feed">
+                {% for item in top_ai_users %}
+                <div class="admin-mini-item">
+                    <strong>{{ item.name }}</strong>
+                    <p>{{ item.email }}</p>
+                    <small>{{ item.request_count }} requests</small>
+                </div>
+                {% else %}
+                <p class="admin-empty-state">No AI usage data available yet.</p>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const analyticsCharts = {{ charts|tojson }};
+    const palette = window.adminChartPalette;
+
+    window.renderAdminChart('analyticsDailyRegistrations', {
+        type: 'line',
+        data: { labels: analyticsCharts.daily_registrations.labels, datasets: [{ label: 'Registrations', data: analyticsCharts.daily_registrations.values, borderColor: palette.green, backgroundColor: 'rgba(34, 197, 94, 0.14)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 4 }] },
+        options: { scales: window.adminScaleDefaults }
+    });
+
+    window.renderAdminChart('analyticsMonthlyUsers', {
+        type: 'bar',
+        data: { labels: analyticsCharts.monthly_users.labels, datasets: [{ label: 'Users', data: analyticsCharts.monthly_users.values, backgroundColor: palette.blue, borderRadius: 8, maxBarThickness: 32 }] },
+        options: { scales: window.adminScaleDefaults }
+    });
+
+    window.renderAdminChart('analyticsExpenseBreakdown', {
+        type: 'doughnut',
+        data: { labels: analyticsCharts.expense_analytics.labels, datasets: [{ data: analyticsCharts.expense_analytics.values, backgroundColor: [palette.blue, palette.cyan, palette.green, palette.amber, palette.red, palette.violet], borderWidth: 2, borderColor: '#0B1220', hoverOffset: 6 }] },
+        options: {
+            cutout: '58%',
+            layout: { padding: 8 },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: palette.text,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        padding: 10
+                    }
+                }
+            }
+        }
+    });
+
+    window.renderAdminChart('analyticsAiUsage', {
+        type: 'line',
+        data: { labels: analyticsCharts.ai_usage.labels, datasets: [{ label: 'AI Requests', data: analyticsCharts.ai_usage.values, borderColor: palette.violet, backgroundColor: 'rgba(139, 92, 246, 0.16)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 4 }] },
+        options: { scales: window.adminScaleDefaults }
+    });
+</script>
+{% endblock %}

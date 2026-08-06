@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}Developer Admin | Smart Finance Insights{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="admin-sidebar">
+            <div class="admin-brand">
+                <span class="admin-brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
+                <div>
+                    <strong>Developer Admin</strong>
+                    <span>Smart Finance Insights</span>
+                </div>
+            </div>
+
+            <nav class="admin-nav">
+                <a href="{{ url_for('admin_dashboard') }}" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+                <a href="{{ url_for('admin_users') }}" class="{% if admin_nav_route == 'admin_users' %}active{% endif %}"><i class="fa-solid fa-users"></i><span>Users</span></a>
+                <a href="{{ url_for('admin_analytics') }}" class="{% if admin_nav_route == 'admin_analytics' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a>
+                <a href="{{ url_for('admin_analytics') }}#ai-usage" class="{% if admin_nav_route == 'admin_analytics' %}active{% endif %}"><i class="fa-solid fa-robot"></i><span>AI Usage</span></a>
+                <a href="{{ url_for('admin_reports') }}" class="{% if admin_nav_route == 'admin_reports' %}active{% endif %}"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
+                <a href="{{ url_for('admin_dashboard') }}#activity-feed" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-wave-square"></i><span>Activity Feed</span></a>
+                <a href="{{ url_for('admin_dashboard') }}#notifications" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-regular fa-bell"></i><span>Notifications</span></a>
+                <a href="{{ url_for('admin_dashboard') }}#settings" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-sliders"></i><span>Settings</span></a>
+                <a href="{{ url_for('admin_dashboard') }}#logs" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-scroll"></i><span>Logs</span></a>
+                <a href="{{ url_for('admin_system') }}" class="{% if admin_nav_route == 'admin_system' %}active{% endif %}"><i class="fa-solid fa-heart-pulse"></i><span>System Health</span></a>
+            </nav>
+
+            <div class="admin-sidebar-footer">
+                <div class="admin-developer-badge">
+                    {% if current_profile_image %}
+                    <img src="{{ current_profile_image }}?v={{ current_profile_image_version }}" alt="Developer avatar">
+                    {% else %}
+                    <span>{{ current_profile_initial }}</span>
+                    {% endif %}
+                    <div>
+                        <strong>{{ admin_user['name'] }}</strong>
+                        <small>{{ admin_user['email'] }}</small>
+                    </div>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="admin-ghost-link"><i class="fa-solid fa-arrow-left"></i><span>User Dashboard</span></a>
+                <a href="/logout" class="admin-ghost-link"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div>
+                    <p class="admin-eyebrow">Restricted developer workspace</p>
+                    <h1>{% block admin_heading %}Developer Admin Panel{% endblock %}</h1>
+                </div>
+                <div class="admin-topbar-meta">
+                    <span><i class="fa-regular fa-clock"></i> {{ current_year }}</span>
+                    <span><i class="fa-solid fa-user-shield"></i> Developer only</span>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="admin-flash-stack">
+                {% for category, message in messages %}
+                <div class="admin-flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        window.adminChartPalette = {
+            blue: '#3B82F6',
+            cyan: '#38BDF8',
+            green: '#22C55E',
+            amber: '#F59E0B',
+            red: '#EF4444',
+            violet: '#8B5CF6',
+            slate: '#94A3B8',
+            grid: 'rgba(255,255,255,0.08)',
+            text: '#F8FAFC'
+        };
+
+        window.adminChartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 700,
+                easing: 'easeOutQuart'
+            },
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: window.adminChartPalette.text,
+                        boxWidth: 12,
+                        boxHeight: 12,
+                        padding: 14,
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(11, 18, 32, 0.95)',
+                    borderColor: 'rgba(255,255,255,0.08)',
+                    borderWidth: 1,
+                    titleColor: '#F8FAFC',
+                    bodyColor: '#F8FAFC',
+                    padding: 10,
+                    displayColors: true
+                }
+            }
+        };
+
+        window.adminScaleDefaults = {
+            x: {
+                ticks: {
+                    color: window.adminChartPalette.slate,
+                    maxRotation: 0,
+                    autoSkip: true
+                },
+                grid: {
+                    color: window.adminChartPalette.grid,
+                    drawBorder: false
+                }
+            },
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: window.adminChartPalette.slate,
+                    precision: 0
+                },
+                grid: {
+                    color: window.adminChartPalette.grid,
+                    drawBorder: false
+                }
+            }
+        };
+
+        window.renderAdminChart = function (canvasId, config) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || typeof Chart === 'undefined') {
+                return null;
+            }
+
+            const mergedOptions = Object.assign({}, window.adminChartDefaults, config.options || {});
+            if (config.options && config.options.scales) {
+                mergedOptions.scales = Object.assign({}, window.adminScaleDefaults, config.options.scales);
+            }
+
+            return new Chart(canvas, Object.assign({}, config, { options: mergedOptions }));
+        };
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

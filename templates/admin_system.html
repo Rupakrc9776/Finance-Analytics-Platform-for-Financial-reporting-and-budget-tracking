@@ -1,0 +1,55 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin System Health | Smart Finance Insights{% endblock %}
+{% block admin_heading %}System Health{% endblock %}
+
+{% block content %}
+<section class="admin-section-stack">
+    <section class="admin-card-grid admin-card-grid-5">
+        <article class="admin-stat-card"><span>Database Health</span><strong>{{ system_health.database_health }}</strong></article>
+        <article class="admin-stat-card"><span>Gemini API Status</span><strong>{{ system_health.gemini_api_status }}</strong></article>
+        <article class="admin-stat-card"><span>Storage Usage</span><strong>{{ system_health.storage_usage }}</strong></article>
+        <article class="admin-stat-card"><span>Uploads Count</span><strong>{{ system_health.uploads_count }}</strong></article>
+        <article class="admin-stat-card accent"><span>Journal Mode</span><strong>{{ system_health.database_journal_mode }}</strong></article>
+    </section>
+
+    <section class="admin-content-grid admin-content-grid-tight">
+        <article class="admin-surface">
+            <div class="admin-panel-head"><h3>Database and API</h3><span>Infrastructure snapshot</span></div>
+            <div class="admin-key-value-list">
+                <div><span>Database health</span><strong>{{ system_health.database_health }}</strong></div>
+                <div><span>Database size</span><strong>{{ system_health.database_size }}</strong></div>
+                <div><span>Journal mode</span><strong>{{ system_health.database_journal_mode }}</strong></div>
+                <div><span>Gemini API status</span><strong>{{ system_health.gemini_api_status }}</strong></div>
+            </div>
+        </article>
+
+        <article class="admin-surface">
+            <div class="admin-panel-head"><h3>Uploads</h3><span>Storage accounting</span></div>
+            <div class="admin-key-value-list">
+                <div><span>Profile uploads</span><strong>{{ system_health.profile_uploads_count }}</strong></div>
+                <div><span>Profile storage</span><strong>{{ system_health.profile_uploads_size }}</strong></div>
+                <div><span>Jarvis uploads</span><strong>{{ system_health.jarvis_uploads_count }}</strong></div>
+                <div><span>Jarvis storage</span><strong>{{ system_health.jarvis_uploads_size }}</strong></div>
+            </div>
+        </article>
+
+        <article class="admin-surface">
+            <div class="admin-panel-head"><h3>Developer Settings</h3><span>Access configuration</span></div>
+            <div class="admin-key-value-list">
+                <div><span>Configured developer emails</span><strong>{{ settings_snapshot.developer_emails|length }}</strong></div>
+                <div><span>Explicit developer accounts</span><strong>{{ settings_snapshot.explicit_developer_count }}</strong></div>
+                <div><span>Session timeout</span><strong>{{ settings_snapshot.session_timeout_minutes }} min</strong></div>
+                <div><span>Max upload size</span><strong>{{ settings_snapshot.max_upload_mb }} MB</strong></div>
+            </div>
+            {% if settings_snapshot.developer_emails %}
+            <div class="admin-tag-cloud">
+                {% for email in settings_snapshot.developer_emails %}
+                <span>{{ email }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </article>
+    </section>
+</section>
+{% endblock %}

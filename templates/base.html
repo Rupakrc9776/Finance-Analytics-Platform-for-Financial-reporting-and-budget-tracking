@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <title>{% block title %}Smart Finance Insights{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function () {
+            const stored = localStorage.getItem("sfi-theme-mode");
+            const serverTheme = "{{ current_theme_mode|default('light') }}";
+            const resolved = stored === "dark" || stored === "light" ? stored : serverTheme;
+            document.documentElement.setAttribute("data-theme-resolved", resolved === "dark" ? "dark" : "light");
+        })();
+    </script>
+
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+
+            <h2>Smart Finance</h2>
+
+            <span>Insights</span>
+
+        </div>
+
+        <ul class="sidebar-nav">
+
+            <li>
+                <a href="/dashboard" data-route="dashboard">
+                    <i class="fa-solid fa-house"></i>
+                    Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="/income" data-route="income">
+                    <i class="fa-solid fa-wallet"></i>
+                    Income
+                </a>
+            </li>
+
+            <li>
+                <a href="/expense" data-route="expense">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    Expenses
+                </a>
+            </li>
+
+            <li>
+                <a href="/budget" data-route="budget">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    Budget Planner
+                </a>
+            </li>
+
+            <li>
+                <a href="/transactions" data-route="transactions">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                    Transactions
+                </a>
+            </li>
+
+            <li>
+                <a href="/reports" data-route="reports">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Reports
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('investment') }}" data-route="investment">
+                    <i class="fa-solid fa-chart-line"></i>
+                    Investment Portfolio
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('asset_allocation') }}" data-route="asset_allocation">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    Asset Allocation
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('portfolio_dashboard') }}" data-route="portfolio_dashboard">
+                    <i class="fa-solid fa-chart-column"></i>
+                    Portfolio Analytics
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('financial_goals') }}" data-route="financial_goals">
+                    <i class="fa-solid fa-bullseye"></i>
+                    Financial Goals
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('intelligence_dashboard') }}" data-route="intelligence_dashboard">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    Intelligence Dashboard
+                </a>
+            </li>
+
+            <li>
+                <a href="/analysis" data-route="analysis">
+                    <i class="fa-solid fa-brain"></i>
+                    AI Insights
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('financial_calendar') }}" data-route="financial_calendar">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    Financial Calendar
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('data_tools') }}" data-route="data_tools">
+                    <i class="fa-solid fa-database"></i>
+                    Data Tools
+                </a>
+            </li>
+
+            <li>
+                <a href="{{ url_for('activities') }}" data-route="activities">
+                    <i class="fa-solid fa-timeline"></i>
+                    Activity Feed
+                </a>
+            </li>
+
+            <li>
+                <a href="/profile" data-route="profile">
+                    <i class="fa-solid fa-user"></i>
+                    Profile
+                </a>
+            </li>
+
+            {% if current_user_is_developer %}
+            <li>
+                <a href="{{ url_for('admin_dashboard') }}" data-route="admin_dashboard">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Developer Admin
+                </a>
+            </li>
+            {% endif %}
+
+        </ul>
+
+        {% if current_user %}
+        <div class="sidebar-user-panel">
+            {% if current_profile_image %}
+            <img src="{{ current_profile_image }}?v={{ current_profile_image_version }}" alt="Profile picture" class="sidebar-user-avatar">
+            {% else %}
+            <span class="sidebar-user-avatar sidebar-user-avatar-initial" aria-label="Profile initial">{{ current_profile_initial }}</span>
+            {% endif %}
+            <div>
+                <strong>{{ current_user['name'] }}</strong>
+                <span>{{ current_user['email'] }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="logout">
+
+            <a href="/logout">
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                Logout
+
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- Main -->
+
+    <main class="main-content">
+
+        <header class="topbar app-topbar">
+
+            <div class="topbar-left">
+                <button id="menuBtn" class="menu-btn" aria-label="Toggle sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="topbar-title-block">
+                    {% set page_name = request.endpoint.replace('_', ' ') if request.endpoint else 'dashboard' %}
+                    <p class="topbar-overline">Smart Finance Insights</p>
+                    <h2>{{ page_name|title }}</h2>
+                </div>
+            </div>
+
+            <div class="topbar-right">
+                <form class="topbar-search" action="{{ url_for('global_search') }}" method="GET">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search expenses, goals, investments..." aria-label="Global Search">
+                </form>
+
+                <div class="notification-wrapper">
+                    <button id="notificationToggle" class="topbar-icon" type="button" aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        {% if unread_notifications_count > 0 %}
+                        <span class="notification-counter">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </button>
+
+                    <div id="notificationDropdown" class="notification-dropdown">
+                        <div class="notification-head">
+                            <h4>Notifications</h4>
+                            <span>{{ unread_notifications_count }} unread</span>
+                        </div>
+
+                        {% if recent_notifications %}
+                        <ul>
+                            {% for item in recent_notifications %}
+                            <li class="{% if item['is_read'] == 0 %}unread{% endif %}">
+                                <div>
+                                    <strong>{{ item['title'] }}</strong>
+                                    <span class="status-chip {{ item['priority'] or 'info' }}">{{ (item['priority'] or 'info')|title }}</span>
+                                    <p>{{ item['message'] }}</p>
+                                    <small>{{ item['time_ago'] }} • {{ item['created_at'] }}</small>
+                                </div>
+                                {% if item['is_read'] == 0 %}
+                                <form action="{{ url_for('mark_notification_read', notification_id=item['id']) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="mini-link">Mark read</button>
+                                </form>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="notification-empty">No notifications yet.</p>
+                        {% endif %}
+
+                        <div class="notification-actions">
+                            <form action="{{ url_for('mark_all_notifications_read') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="mini-link">Mark all read</button>
+                            </form>
+                            <a href="{{ url_for('notifications_history') }}">View all</a>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme" title="Switch between light and dark mode">
+                    <i class="fa-solid fa-sun" data-theme-icon="light"></i>
+                    <i class="fa-solid fa-moon" data-theme-icon="dark"></i>
+                </button>
+
+                <div class="profile-dropdown-wrap">
+                    <button id="profileToggle" class="topbar-user" type="button" aria-label="Open profile menu">
+                        {% if current_profile_image %}
+                        <img src="{{ current_profile_image }}?v={{ current_profile_image_version }}" alt="User avatar" class="topbar-user-avatar">
+                        {% else %}
+                        <span class="topbar-user-avatar topbar-user-avatar-initial" aria-label="Profile initial">{{ current_profile_initial }}</span>
+                        {% endif %}
+                        <span>{{ session.get('user_name', 'User') }}</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+
+                    <div id="profileDropdown" class="profile-dropdown">
+                        <a href="/profile"><i class="fa-solid fa-user"></i> Profile</a>
+                        <a href="/account-settings"><i class="fa-solid fa-sliders"></i> Settings</a>
+                        <a href="/notifications"><i class="fa-regular fa-bell"></i> Notifications</a>
+                        <a href="/logout" class="danger-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+
+        <section class="page-shell">
+
+            {% block content %}
+
+            {% endblock %}
+
+        </section>
+
+    </main>
+
+    {% if show_footer %}
+    {% if request.endpoint == 'profile' %}
+    {% set footer_variant = 'profile-footer' %}
+    {% else %}
+    {% set footer_variant = '' %}
+    {% endif %}
+    {% include "partials/footer.html" %}
+    {% endif %}
+
+    {% if current_user %}
+    <button id="jarvisFab" class="jarvis-fab" type="button" aria-label="Open Smart Finance AI Assistant" aria-expanded="false" aria-controls="jarvisPanel">
+        <i class="fa-solid fa-robot" aria-hidden="true"></i>
+    </button>
+
+    <section id="jarvisPanel" class="jarvis-panel" aria-label="Smart Finance AI Assistant" hidden>
+        <div class="jarvis-panel-header">
+            <div class="jarvis-panel-title">
+                <span class="jarvis-avatar" aria-hidden="true">
+                    <i class="fa-solid fa-robot"></i>
+                </span>
+                <div>
+                    <strong>Smart Finance AI Assistant</strong>
+                    <small><span class="jarvis-status-dot" aria-hidden="true"></span>Online</small>
+                </div>
+            </div>
+
+            <div class="jarvis-panel-actions">
+                <button id="jarvisVoiceSettingsToggle" class="jarvis-icon-btn" type="button" aria-label="Voice settings" title="Voice settings" aria-expanded="false" aria-controls="jarvisVoiceSettings">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+                <button id="jarvisCloseBtn" class="jarvis-icon-btn" type="button" aria-label="Close chat" title="Close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="jarvis-panel-body">
+            <div class="jarvis-memory-toolbar" role="toolbar" aria-label="Jarvis tools">
+                <button id="jarvisSearchToggle" class="jarvis-icon-btn" type="button" title="Search conversation" aria-label="Search conversation" aria-expanded="false" aria-controls="jarvisSearchCard">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+                <button id="jarvisToolsToggle" class="jarvis-icon-btn" type="button" title="Open tools" aria-label="Open tools" aria-expanded="false" aria-controls="jarvisToolsMenu">
+                    <i class="fa-solid fa-ellipsis"></i>
+                </button>
+
+                <div id="jarvisSearchCard" class="jarvis-search-card" hidden>
+                    <div class="jarvis-search-inner">
+                        <input id="jarvisSearchInput" type="text" placeholder="Search conversation..." aria-label="Search conversation">
+                        <button id="jarvisSearchBtn" class="jarvis-icon-btn" type="button" title="Run search" aria-label="Run search">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="jarvisToolsMenu" class="jarvis-tools-menu" hidden>
+                    <div class="jarvis-tools-grid">
+                        <button id="jarvisTimelineBtn" class="jarvis-tool-btn" type="button" aria-expanded="false" aria-controls="jarvisTimeline">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            History
+                        </button>
+                        <button id="jarvisExportBtn" class="jarvis-tool-btn" type="button">
+                            <i class="fa-solid fa-file-arrow-down"></i>
+                            Download
+                        </button>
+                        <button id="jarvisEmailReportBtn" class="jarvis-tool-btn" type="button">
+                            <i class="fa-solid fa-envelope"></i>
+                            Email
+                        </button>
+                        <button id="jarvisGenerateReportBtn" class="jarvis-tool-btn" type="button">
+                            <i class="fa-solid fa-file-lines"></i>
+                            Report
+                        </button>
+                        <button id="jarvisDownloadReportBtn" class="jarvis-tool-btn" type="button">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            PDF
+                        </button>
+                        <button id="jarvisClearBtn" class="jarvis-tool-btn" type="button">
+                            <i class="fa-solid fa-trash"></i>
+                            Clear
+                        </button>
+                        <button id="jarvisClearMemoryBtn" class="jarvis-tool-btn" type="button">
+                            <i class="fa-solid fa-database"></i>
+                            Reset Memory
+                        </button>
+                        <button id="jarvisFutureToolsBtn" class="jarvis-tool-btn" type="button" disabled>
+                            <i class="fa-regular fa-star"></i>
+                            Future Tools
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="jarvisVoiceSettings" class="jarvis-voice-settings" hidden>
+                <label class="jarvis-voice-row">
+                    <span>Enable Voice</span>
+                    <input id="jarvisVoiceEnabled" type="checkbox" checked>
+                </label>
+
+                <label class="jarvis-voice-row">
+                    <span>Voice</span>
+                    <select id="jarvisVoiceGender">
+                        <option value="auto">Auto</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                    </select>
+                </label>
+
+                <label class="jarvis-voice-row">
+                    <span>Speech Rate <strong id="jarvisVoiceRateValue">1.0</strong></span>
+                    <input id="jarvisVoiceRate" type="range" min="0.7" max="1.4" value="1" step="0.1">
+                </label>
+
+                <label class="jarvis-voice-row">
+                    <span>Pitch <strong id="jarvisVoicePitchValue">1.0</strong></span>
+                    <input id="jarvisVoicePitch" type="range" min="0.7" max="1.4" value="1" step="0.1">
+                </label>
+
+                <div class="jarvis-settings-group">
+                    <strong>AI Preferences</strong>
+                    <label class="jarvis-voice-row">
+                        <span>Response Style</span>
+                        <select id="jarvisAiStyle">
+                            <option value="precise">Precise</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="creative">Creative</option>
+                        </select>
+                    </label>
+
+                    <label class="jarvis-voice-row">
+                        <span>Language</span>
+                        <select id="jarvisLanguage">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                            <option value="bn">Bengali</option>
+                        </select>
+                    </label>
+
+                    <label class="jarvis-voice-row">
+                        <span>Temperature <strong id="jarvisTemperatureValue">0.3</strong></span>
+                        <input id="jarvisTemperature" type="range" min="0" max="1" value="0.3" step="0.1">
+                    </label>
+                </div>
+
+                <div class="jarvis-settings-group">
+                    <strong>Theme Preferences</strong>
+                    <label class="jarvis-voice-row">
+                        <span>Chat Theme</span>
+                        <select id="jarvisThemePreference">
+                            <option value="system">System</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div id="jarvisMessages" class="jarvis-messages" aria-live="polite"></div>
+
+            <section class="jarvis-suggestions-accordion" aria-label="Suggested questions">
+                <button id="jarvisSuggestionsToggle" class="jarvis-accordion-toggle" type="button" aria-expanded="false" aria-controls="jarvisSuggestionsBody">
+                    <span>Suggested Questions</span>
+                    <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                </button>
+                <div id="jarvisSuggestionsBody" hidden>
+                    <div id="jarvisSuggestions" class="jarvis-suggestions" aria-label="Smart finance suggestions">
+                        <button class="jarvis-chip" type="button" data-prompt="How much did I spend this month?">How much did I spend this month?</button>
+                        <button class="jarvis-chip" type="button" data-prompt="Can I save more?">Can I save more?</button>
+                        <button class="jarvis-chip" type="button" data-prompt="Analyze my budget">Analyze my budget</button>
+                        <button class="jarvis-chip" type="button" data-prompt="Investment advice">Investment advice</button>
+                        <button class="jarvis-chip" type="button" data-prompt="Show savings">Show savings</button>
+                        <button class="jarvis-chip" type="button" data-prompt="Expense summary">Expense summary</button>
+                    </div>
+                </div>
+            </section>
+
+            <form id="jarvisForm" class="jarvis-input-wrap" autocomplete="off">
+                <textarea id="jarvisInput" rows="2" placeholder="Ask anything about your finances..." aria-label="Ask Jarvis"></textarea>
+                <input id="jarvisFileInput" type="file" accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp" hidden>
+                <div id="jarvisAttachmentList" class="jarvis-attachment-list" hidden></div>
+                <div class="jarvis-input-actions">
+                    <button id="jarvisAttachBtn" class="btn btn-secondary" type="button" aria-label="Attach file" title="Attach file">
+                        <i class="fa-solid fa-paperclip"></i>
+                        Attach
+                    </button>
+                    <button id="jarvisMicBtn" class="btn btn-secondary" type="button" aria-label="Start voice input" title="Start voice input">
+                        <i class="fa-solid fa-microphone"></i>
+                        Mic
+                    </button>
+                    <button id="jarvisSendBtn" class="btn btn-primary" type="submit">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        Send
+                    </button>
+                </div>
+            </form>
+
+            <div id="jarvisVoiceStatus" class="jarvis-voice-status" aria-live="polite"></div>
+        </div>
+    </section>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jarvis_popups.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jarvis_chat.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jarvis_voice.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jarvis_v2.js') }}"></script>
+
+    {% block scripts %}
+
+    {% endblock %}
+
+</body>
+
+</html>

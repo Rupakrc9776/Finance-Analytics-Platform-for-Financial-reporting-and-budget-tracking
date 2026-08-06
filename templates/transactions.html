@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}
+Transactions | Smart Finance Insights
+{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">
+    Transaction History
+</h1>
+
+<div class="fade">
+
+    <div class="table-card">
+
+        <div class="table-header">
+
+            <h2>Expense Transactions</h2>
+
+            <form action="/search" method="GET">
+
+                <input type="text" name="keyword" placeholder="Search Category..." class="search-box">
+
+            </form>
+
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Category</th>
+
+                    <th>Amount</th>
+
+                    <th>Description</th>
+
+                    <th>Date</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% if expenses %}
+
+                {% for expense in expenses %}
+
+                <tr>
+
+                    <td>{{ expense["id"] }}</td>
+
+                    <td>
+
+                        <span class="badge">
+
+                            {{ expense["category"] }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        ₹ {{ expense["amount"] }}
+
+                    </td>
+
+                    <td>
+
+                        {{ expense["description"] }}
+
+                    </td>
+
+                    <td>
+
+                        {{ expense["expense_date"] }}
+
+                    </td>
+
+                    <td>
+
+                        <a href="/edit_expense/{{ expense['id'] }}" class="btn btn-success">
+
+                            <i class="fa-solid fa-pen"></i>
+
+                        </a>
+
+                        <form action="/delete_expense/{{ expense['id'] }}" method="POST" onsubmit="return confirm('Delete this expense?')" class="inline-form">
+
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                            <button type="submit" class="btn btn-danger">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                {% else %}
+
+                <tr>
+
+                    <td colspan="6">
+
+                        No Expenses Found
+
+                    </td>
+
+                </tr>
+
+                {% endif %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Finance Insights</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+<body class="landing-v2">
+
+    <header class="lp-nav" id="top">
+        <div class="lp-container lp-nav-inner">
+            <a href="/" class="lp-brand" aria-label="Smart Finance Insights Home">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Smart Finance Insights logo">
+                <div>
+                    <strong>Smart Finance</strong>
+                    <span>Insights</span>
+                </div>
+            </a>
+
+            <button class="lp-menu-btn" id="lpMenuBtn" aria-label="Toggle menu" aria-expanded="false" aria-controls="lpNavLinks">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav class="lp-nav-links" id="lpNavLinks" aria-label="Primary navigation">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#why-us">Why Us</a>
+                <a href="#preview">Preview</a>
+                <a href="#trust">Trust</a>
+            </nav>
+
+            <div class="lp-nav-actions">
+                <a href="/login" class="btn btn-secondary">Login</a>
+                <a href="/register" class="btn btn-primary">Register</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="lp-main">
+
+        <section class="lp-hero">
+            <div class="lp-container lp-hero-grid">
+                <div class="lp-hero-copy fade">
+                    <div class="lp-badge">
+                        <i class="fa-solid fa-sparkles"></i>
+                        Trusted Personal Finance SaaS Platform
+                    </div>
+
+                    <h1>
+                        Financial clarity, planning, and growth from one elegant dashboard.
+                    </h1>
+
+                    <p>
+                        Smart Finance Insights helps you track income, control expenses, optimize budgets, monitor investments,
+                        and get actionable AI recommendations so you can make confident financial decisions every month.
+                    </p>
+
+                    <ul class="lp-hero-highlights" aria-label="Key benefits">
+                        <li><i class="fa-solid fa-circle-check"></i> End-to-end money management workflow</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Data-backed budgeting and spending control</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Investment and goal analytics with AI insights</li>
+                    </ul>
+
+                    <div class="lp-hero-actions">
+                        <a href="/login" class="btn btn-primary landing-btn">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            Login
+                        </a>
+                        <a href="/register" class="btn btn-success landing-btn">
+                            <i class="fa-solid fa-user-plus"></i>
+                            Register
+                        </a>
+                        <a href="#features" class="btn btn-secondary landing-btn">
+                            <i class="fa-solid fa-compass"></i>
+                            Explore Features
+                        </a>
+                    </div>
+
+                    <div class="lp-trust-line">
+                        <span><i class="fa-solid fa-shield-halved"></i> Secure by design</span>
+                        <span><i class="fa-solid fa-bolt"></i> Fast and responsive</span>
+                        <span><i class="fa-solid fa-mobile-screen-button"></i> Works across devices</span>
+                    </div>
+                </div>
+
+                <div class="lp-hero-visual fade" aria-hidden="true">
+                    <div class="lp-mockup-shell">
+                        <div class="lp-mockup-top">
+                            <span></span><span></span><span></span>
+                        </div>
+
+                        <div class="lp-mockup-body">
+                            <div class="lp-mockup-head">
+                                <h3>Financial Overview</h3>
+                                <strong>Health Score: 86</strong>
+                            </div>
+
+                            <div class="lp-mockup-kpi-grid">
+                                <article>
+                                    <span>Income</span>
+                                    <strong>Rs. 95,000</strong>
+                                </article>
+                                <article>
+                                    <span>Expense</span>
+                                    <strong>Rs. 58,400</strong>
+                                </article>
+                                <article>
+                                    <span>Savings</span>
+                                    <strong>Rs. 36,600</strong>
+                                </article>
+                                <article>
+                                    <span>ROI</span>
+                                    <strong>14.2%</strong>
+                                </article>
+                            </div>
+
+                            <div class="lp-mockup-chart">
+                                <div class="bar b1"></div>
+                                <div class="bar b2"></div>
+                                <div class="bar b3"></div>
+                                <div class="bar b4"></div>
+                                <div class="bar b5"></div>
+                                <div class="bar b6"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lp-float-card lp-float-income">
+                        <i class="fa-solid fa-wallet"></i>
+                        <div>
+                            <span>Monthly Savings</span>
+                            <strong>Rs. 36,600</strong>
+                        </div>
+                    </div>
+
+                    <div class="lp-float-card lp-float-investment">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <div>
+                            <span>Portfolio Value</span>
+                            <strong>Rs. 4.8L</strong>
+                        </div>
+                    </div>
+
+                    <div class="lp-float-card lp-float-alert">
+                        <i class="fa-solid fa-brain"></i>
+                        <div>
+                            <span>AI Suggestion</span>
+                            <strong>Reduce Shopping by 8%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="features">
+            <div class="lp-container">
+                <div class="section-heading">
+                    <span>Core Features</span>
+                    <h2>Everything needed for a modern personal finance workflow</h2>
+                </div>
+
+                <div class="lp-feature-grid">
+                    <article class="lp-feature-card"><i class="fa-solid fa-wallet"></i><h3>Income Tracking</h3><p>Capture recurring and variable income with clean monthly visibility.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-money-bill-wave"></i><h3>Expense Management</h3><p>Track spending by category and identify where money leaks.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-chart-pie"></i><h3>Budget Planner</h3><p>Plan monthly budgets and measure utilization in real time.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-chart-line"></i><h3>Investment Portfolio</h3><p>Monitor invested amount, returns, and total portfolio movement.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-chart-column"></i><h3>Portfolio Analytics</h3><p>Review growth trends, asset allocation, and risk concentration.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-bullseye"></i><h3>Financial Goals</h3><p>Set, track, and accelerate milestones with measurable progress.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-brain"></i><h3>AI Insights</h3><p>Receive actionable suggestions from your financial behavior.</p></article>
+                    <article class="lp-feature-card"><i class="fa-solid fa-file-pdf"></i><h3>Smart Reports</h3><p>Export professional CSV/PDF reports for review and planning.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="how-it-works">
+            <div class="lp-container">
+                <div class="section-heading">
+                    <span>How It Works</span>
+                    <h2>A four-step path to stronger financial health</h2>
+                </div>
+
+                <div class="lp-timeline">
+                    <article class="lp-step"><span>1</span><h3>Register</h3><p>Create your account and set your monthly income baseline.</p></article>
+                    <article class="lp-step"><span>2</span><h3>Track Finances</h3><p>Add expenses, budgets, investments, and goals in one place.</p></article>
+                    <article class="lp-step"><span>3</span><h3>Analyze Reports</h3><p>Visualize spending trends and portfolio performance clearly.</p></article>
+                    <article class="lp-step"><span>4</span><h3>Improve Health</h3><p>Use AI suggestions to optimize savings and future growth.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="why-us">
+            <div class="lp-container">
+                <div class="section-heading">
+                    <span>Why Choose Smart Finance Insights</span>
+                    <h2>Premium capabilities built for trust and consistency</h2>
+                </div>
+
+                <div class="lp-why-grid">
+                    <article><i class="fa-solid fa-shield-halved"></i><h3>Security</h3><p>Built with secure authentication and safe financial workflows.</p></article>
+                    <article><i class="fa-solid fa-chart-simple"></i><h3>Analytics</h3><p>Clean charts and monthly insights for practical decision making.</p></article>
+                    <article><i class="fa-solid fa-coins"></i><h3>Budget Planning</h3><p>Track utilization and keep your spending aligned with targets.</p></article>
+                    <article><i class="fa-solid fa-brain"></i><h3>AI Guidance</h3><p>Rule-based recommendations focused on smarter money habits.</p></article>
+                    <article><i class="fa-solid fa-chart-line"></i><h3>Investments</h3><p>Portfolio, allocation, and ROI insights in one dashboard flow.</p></article>
+                    <article><i class="fa-solid fa-flag-checkered"></i><h3>Goals</h3><p>Plan long-term outcomes with measurable progress indicators.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="preview">
+            <div class="lp-container">
+                <div class="section-heading">
+                    <span>Product Preview</span>
+                    <h2>Purpose-built views for complete money visibility</h2>
+                </div>
+
+                <div class="lp-preview-grid">
+                    <article class="lp-preview-card">
+                        <div class="lp-preview-mock mock-dashboard"></div>
+                        <h3>Dashboard</h3>
+                        <p>Snapshot of income, expenses, savings, and monthly trend analysis.</p>
+                    </article>
+                    <article class="lp-preview-card">
+                        <div class="lp-preview-mock mock-reports"></div>
+                        <h3>Reports</h3>
+                        <p>Downloadable summaries for financial review and documentation.</p>
+                    </article>
+                    <article class="lp-preview-card">
+                        <div class="lp-preview-mock mock-ai"></div>
+                        <h3>AI Insights</h3>
+                        <p>Smart recommendations from your historical spending behavior.</p>
+                    </article>
+                    <article class="lp-preview-card">
+                        <div class="lp-preview-mock mock-invest"></div>
+                        <h3>Investments</h3>
+                        <p>Track portfolio growth, returns, and asset-level distribution.</p>
+                    </article>
+                    <article class="lp-preview-card">
+                        <div class="lp-preview-mock mock-analytics"></div>
+                        <h3>Analytics</h3>
+                        <p>Advanced charts for trend, risk, and financial progress monitoring.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-section" id="trust">
+            <div class="lp-container">
+                <div class="section-heading">
+                    <span>Trust & Reliability</span>
+                    <h2>Designed for security, speed, and confidence</h2>
+                </div>
+
+                <div class="lp-trust-grid">
+                    <article><i class="fa-solid fa-lock"></i><h3>Secure Platform</h3><p>Strong login and session controls protect account access.</p></article>
+                    <article><i class="fa-solid fa-shield-heart"></i><h3>Encrypted Data</h3><p>Sensitive details are handled using secure application practices.</p></article>
+                    <article><i class="fa-solid fa-gauge-high"></i><h3>Fast Performance</h3><p>Lightweight architecture delivers smooth usage across modules.</p></article>
+                    <article><i class="fa-solid fa-display"></i><h3>Cross Device</h3><p>Responsive UI optimized for desktop, tablet, and mobile screens.</p></article>
+                </div>
+            </div>
+        </section>
+
+        <section class="lp-cta">
+            <div class="lp-container lp-cta-inner">
+                <h2>Start building better financial habits from today.</h2>
+                <p>Join Smart Finance Insights and bring income, expense, budget, investment, and AI guidance into one clean experience.</p>
+                <div class="lp-hero-actions">
+                    <a href="/register" class="btn btn-success landing-btn"><i class="fa-solid fa-user-plus"></i>Create Free Account</a>
+                    <a href="/login" class="btn btn-primary landing-btn"><i class="fa-solid fa-right-to-bracket"></i>Login</a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="home-footer">
+            <div class="lp-container home-footer-grid">
+                <section class="home-footer-card home-footer-brand">
+                    <div class="home-footer-title">
+                        <i class="fa-solid fa-wallet"></i>
+                        <h3>Smart Finance Insights</h3>
+                    </div>
+                    <p>An AI-powered personal finance platform designed to help users manage income, expenses, investments, budgets, and financial goals through an intuitive dashboard.</p>
+                </section>
+
+                <section class="home-footer-card">
+                    <h4>Quick Links</h4>
+                    <a href="/">Home</a>
+                    <a href="#features">Features</a>
+                    <a href="/login">Login</a>
+                    <a href="/register">Register</a>
+                    <a href="/dashboard">Dashboard</a>
+                </section>
+
+                <section class="home-footer-card">
+                    <h4>Contact</h4>
+                    <a href="mailto:helprupakrc@gmail.com" target="_blank" rel="noopener noreferrer"><i class="fa-solid fa-envelope"></i>helprupakrc@gmail.com</a>
+                    <a href="https://github.com/Rupakrc9776" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-github"></i>GitHub</a>
+                    <a href="https://www.linkedin.com/in/rupak-chatterjee-293bba2a6/" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-linkedin"></i>LinkedIn</a>
+                </section>
+
+                <section class="home-footer-card">
+                    <h4>Modules</h4>
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/expense">Expense Tracking</a>
+                    <a href="/investment">Investment Portfolio</a>
+                    <a href="/portfolio-dashboard">Portfolio Analytics</a>
+                    <a href="/financial-goals">Financial Goals</a>
+                    <a href="/analysis">AI Insights</a>
+                    <a href="/reports">Reports</a>
+                </section>
+            </div>
+
+            <div class="lp-container">
+                <div class="home-footer-divider"></div>
+                <div class="home-footer-bottom">
+                    <p>© 2026 Smart Finance Insights. All Rights Reserved.</p>
+                    <p>Developed with <span>❤️</span> by <a href="https://www.linkedin.com/in/rupak-chatterjee-293bba2a6/" target="_blank" rel="noopener noreferrer">Rupak Chatterjee</a></p>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuBtn = document.getElementById('lpMenuBtn');
+            const navLinks = document.getElementById('lpNavLinks');
+
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', function () {
+                    const expanded = this.getAttribute('aria-expanded') === 'true';
+                    this.setAttribute('aria-expanded', String(!expanded));
+                    navLinks.classList.toggle('open');
+                });
+
+                navLinks.querySelectorAll('a').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                        navLinks.classList.remove('open');
+                        menuBtn.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            }
+
+        });
+    </script>
+
+</body>
+</html>

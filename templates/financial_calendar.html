@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Calendar | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Financial Calendar</h1>
+
+<div class="table-card fade">
+    <p class="section-note">Track income, expenses, investments, goal deadlines, reminders, and budget months in one calendar.</p>
+    <div id="financialCalendar" class="calendar-viewport"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/main.min.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const target = document.getElementById('financialCalendar');
+    if (!target || typeof FullCalendar === 'undefined') {
+        return;
+    }
+
+    const events = {{ calendar_events|tojson }};
+
+    const calendar = new FullCalendar.Calendar(target, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        events: events,
+        height: 'auto',
+        eventDisplay: 'block',
+        dayMaxEvents: true
+    });
+
+    calendar.render();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Asset Allocation | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Asset Allocation</h1>
+
+<div class="fade">
+
+    <div class="cards">
+
+        <div class="card">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>Total Investment</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.total_investment) }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-chart-line"></i>
+            <h3>Portfolio Value</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.current_value) }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-circle-arrow-up"></i>
+            <h3>Total Profit</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.total_profit) }}</h2>
+        </div>
+
+        <div class="card">
+            <i class="fa-solid fa-percent"></i>
+            <h3>ROI</h3>
+            <h2>{{ summary.roi }}%</h2>
+        </div>
+
+    </div>
+
+    <div class="dashboard-grid analytics-grid">
+        <div class="chart-card">
+            <div class="chart-head">
+                <h3>Asset Allocation Pie Chart</h3>
+                <p class="chart-subtitle">Distribution of invested capital across all asset classes.</p>
+            </div>
+            <div class="chart-viewport chart-viewport-tight">
+                <canvas id="allocationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h3>Investment Distribution</h3>
+            <table>
+                <tr>
+                    <th>Asset</th>
+                    <th>Amount</th>
+                    <th>Share</th>
+                    <th>ROI</th>
+                </tr>
+                {% if allocation_rows %}
+                {% for row in allocation_rows %}
+                <tr>
+                    <td>{{ row.asset }}</td>
+                    <td>₹ {{ "{:,.0f}".format(row.invested_amount) }}</td>
+                    <td>{{ row.share }}%</td>
+                    <td>{{ row.roi }}%</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">No investment data available.</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const allocationLabels = {{ chart_labels | tojson }};
+const allocationValues = {{ chart_values | tojson }};
+const palette = typeof window.getThemeChartPalette === 'function'
+    ? window.getThemeChartPalette()
+    : {
+        series1: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-1').trim(),
+        series2: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-2').trim(),
+        series3: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-3').trim(),
+        series4: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-4').trim(),
+        series5: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-5').trim(),
+        series6: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-6').trim(),
+        series7: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-7').trim()
+    };
+const registerThemeAwareChart = typeof window.registerThemeAwareChart === 'function'
+    ? window.registerThemeAwareChart
+    : null;
+
+const allocationCtx = document.getElementById('allocationChart');
+
+if (allocationCtx) {
+    const allocationChart = new Chart(allocationCtx, {
+        type: 'pie',
+        data: {
+            labels: allocationLabels,
+            datasets: [{
+                data: allocationValues,
+                backgroundColor: [
+                    palette.series1,
+                    palette.series6,
+                    palette.series7,
+                    palette.series2,
+                    palette.series3,
+                    palette.series4,
+                    palette.series5
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(allocationChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = [
+                p.series1,
+                p.series6,
+                p.series7,
+                p.series2,
+                p.series3,
+                p.series4,
+                p.series5
+            ];
+        });
+    }
+}
+</script>
+{% endblock %}

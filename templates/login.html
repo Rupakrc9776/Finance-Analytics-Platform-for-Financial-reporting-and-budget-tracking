@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Smart Finance Insights</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card fade">
+
+        <h1>
+
+            <i class="fa-solid fa-wallet"></i>
+
+            Smart Finance
+
+        </h1>
+
+        <p>
+
+            Login to continue
+
+        </p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+
+        {% if messages %}
+
+        {% for category, message in messages %}
+
+        <div class="flash-message {{ category }}">
+
+            {{ message }}
+
+        </div>
+
+        {% endfor %}
+
+        {% endif %}
+
+        {% endwith %}
+
+        <form action="/login" method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+
+                <label>Email</label>
+
+                <input type="email" name="email" placeholder="Enter Email" required>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Password</label>
+
+                <div class="password-box">
+
+                    <input type="password" id="password" name="password" placeholder="Enter Password" required>
+
+                    <i class="fa-solid fa-eye" id="togglePassword">
+
+                    </i>
+
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+
+                Login
+
+            </button>
+
+        </form>
+
+        <div class="auth-links">
+
+            <a href="/forgot_password">Forgot Password?</a>
+
+        </div>
+
+        <br>
+
+        <p>
+
+            Don't have an account?
+
+            <a href="/register">
+
+                Register
+
+            </a>
+
+        </p>
+
+    </div>
+
+    <script>
+
+        const toggle = document.getElementById("togglePassword");
+
+        const password = document.getElementById("password");
+
+        toggle.addEventListener("click", function () {
+
+            if (password.type === "password") {
+
+                password.type = "text";
+
+                toggle.classList.remove("fa-eye");
+
+                toggle.classList.add("fa-eye-slash");
+
+            }
+
+            else {
+
+                password.type = "password";
+
+                toggle.classList.remove("fa-eye-slash");
+
+                toggle.classList.add("fa-eye");
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>

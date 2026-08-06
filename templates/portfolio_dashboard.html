@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Analytics | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<h1 class="page-heading">Portfolio Analytics Dashboard</h1>
+
+<div class="fade">
+
+    <div class="cards">
+        <div class="card">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>Total Investment</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.total_investment) }}</h2>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-chart-line"></i>
+            <h3>Portfolio Value</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.current_value) }}</h2>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-circle-arrow-up"></i>
+            <h3>Profit/Loss</h3>
+            <h2>₹ {{ "{:,.0f}".format(summary.total_profit) }}</h2>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-percent"></i>
+            <h3>ROI</h3>
+            <h2>{{ summary.roi }}%</h2>
+        </div>
+    </div>
+
+    <div class="portfolio-charts">
+        <div class="chart-card">
+            <div class="chart-head">
+                <h3>Portfolio Growth</h3>
+                <p class="chart-subtitle">Overall value trajectory over the selected timeline.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="portfolioGrowthChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-head">
+                <h3>Asset Allocation</h3>
+                <p class="chart-subtitle">Current portfolio mix by asset class.</p>
+            </div>
+            <div class="chart-viewport chart-viewport-tight">
+                <canvas id="assetAllocationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-head">
+                <h3>Goal Progress</h3>
+                <p class="chart-subtitle">Completion percentage for each financial goal.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="goalProgressChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-head">
+                <h3>Investment Trend</h3>
+                <p class="chart-subtitle">Month-by-month movement of invested value.</p>
+            </div>
+            <div class="chart-viewport">
+                <canvas id="investmentTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="portfolio-tables">
+        <div class="table-card">
+            <h3>Top Investments</h3>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Asset</th>
+                    <th>Profit</th>
+                    <th>ROI</th>
+                </tr>
+                {% if top_investments %}
+                {% for investment in top_investments %}
+                <tr>
+                    <td>{{ investment.investment_name }}</td>
+                    <td>{{ investment.asset }}</td>
+                    <td>₹ {{ "{:,.0f}".format(investment.profit) }}</td>
+                    <td>{{ investment.roi }}%</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">No investment data available.</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <div class="table-card">
+            <h3>Worst Investments</h3>
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Asset</th>
+                    <th>Profit</th>
+                    <th>ROI</th>
+                </tr>
+                {% if worst_investments %}
+                {% for investment in worst_investments %}
+                <tr>
+                    <td>{{ investment.investment_name }}</td>
+                    <td>{{ investment.asset }}</td>
+                    <td class="{% if investment.profit >= 0 %}tone-positive{% else %}tone-negative{% endif %}">₹ {{ "{:,.0f}".format(investment.profit) }}</td>
+                    <td>{{ investment.roi }}%</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">No investment data available.</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <div class="table-card">
+            <h3>Goal Summary</h3>
+            <table>
+                <tr>
+                    <th>Goal</th>
+                    <th>Saved</th>
+                    <th>Target</th>
+                    <th>Progress</th>
+                </tr>
+                {% if goals %}
+                {% for goal in goals %}
+                <tr>
+                    <td>{{ goal.goal_name }}</td>
+                    <td>₹ {{ "{:,.0f}".format(goal.saved_amount) }}</td>
+                    <td>₹ {{ "{:,.0f}".format(goal.target_amount) }}</td>
+                    <td>{{ goal.completion_percentage }}%</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">No goals added yet.</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const timelineLabels = {{ timeline_labels | tojson }};
+const portfolioGrowth = {{ portfolio_growth | tojson }};
+const investmentTrend = {{ investment_trend | tojson }};
+const allocationLabels = {{ allocation_labels | tojson }};
+const allocationValues = {{ allocation_values | tojson }};
+const goalLabels = {{ goal_labels | tojson }};
+const goalProgressValues = {{ goal_progress_values | tojson }};
+const palette = typeof window.getThemeChartPalette === 'function'
+    ? window.getThemeChartPalette()
+    : {
+        series1: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-1').trim(),
+        series2: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-2').trim(),
+        series3: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-3').trim(),
+        series4: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-4').trim(),
+        series5: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-5').trim(),
+        series6: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-6').trim(),
+        series7: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-7').trim()
+    };
+const themeRgba = typeof window.themeColorToRgba === 'function'
+    ? window.themeColorToRgba
+    : ((color, alpha, fallback) => fallback || color);
+const registerThemeAwareChart = typeof window.registerThemeAwareChart === 'function'
+    ? window.registerThemeAwareChart
+    : null;
+
+const growthChart = document.getElementById('portfolioGrowthChart');
+if (growthChart) {
+    const portfolioGrowthChart = new Chart(growthChart, {
+        type: 'line',
+        data: {
+            labels: timelineLabels,
+            datasets: [{
+                label: 'Portfolio Growth',
+                data: portfolioGrowth,
+                borderColor: palette.series1,
+                backgroundColor: themeRgba(palette.series1, .12),
+                fill: true,
+                tension: 0.35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(portfolioGrowthChart, (chart, p, toRgbaColor) => {
+            chart.data.datasets[0].borderColor = p.series1;
+            chart.data.datasets[0].backgroundColor = toRgbaColor(p.series1, .12);
+        });
+    }
+}
+
+const allocationChart = document.getElementById('assetAllocationChart');
+if (allocationChart) {
+    const assetAllocationChart = new Chart(allocationChart, {
+        type: 'doughnut',
+        data: {
+            labels: allocationLabels,
+            datasets: [{
+                data: allocationValues,
+                backgroundColor: [
+                    palette.series1,
+                    palette.series6,
+                    palette.series7,
+                    palette.series2,
+                    palette.series3,
+                    palette.series4,
+                    palette.series5
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(assetAllocationChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = [
+                p.series1,
+                p.series6,
+                p.series7,
+                p.series2,
+                p.series3,
+                p.series4,
+                p.series5
+            ];
+        });
+    }
+}
+
+const goalChart = document.getElementById('goalProgressChart');
+if (goalChart) {
+    const goalProgressChart = new Chart(goalChart, {
+        type: 'bar',
+        data: {
+            labels: goalLabels,
+            datasets: [{
+                label: 'Progress %',
+                data: goalProgressValues,
+                backgroundColor: palette.series2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(goalProgressChart, (chart, p) => {
+            chart.data.datasets[0].backgroundColor = p.series2;
+        });
+    }
+}
+
+const trendChart = document.getElementById('investmentTrendChart');
+if (trendChart) {
+    const investmentTrendChart = new Chart(trendChart, {
+        type: 'line',
+        data: {
+            labels: timelineLabels,
+            datasets: [{
+                label: 'Investment Trend',
+                data: investmentTrend,
+                borderColor: palette.series3,
+                backgroundColor: themeRgba(palette.series3, .12),
+                fill: true,
+                tension: 0.35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    if (registerThemeAwareChart) {
+        registerThemeAwareChart(investmentTrendChart, (chart, p, toRgbaColor) => {
+            chart.data.datasets[0].borderColor = p.series3;
+            chart.data.datasets[0].backgroundColor = toRgbaColor(p.series3, .12);
+        });
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Admin Reports | Smart Finance Insights{% endblock %}
+{% block admin_heading %}Reports and Exports{% endblock %}
+
+{% block content %}
+<section class="admin-section-stack">
+    <section class="admin-surface admin-toolbar-surface admin-toolbar-actions">
+        <div>
+            <p class="admin-kicker">Generated {{ report_payload.generated_at }}</p>
+            <h2>Export platform-wide operational reports</h2>
+        </div>
+        <div class="admin-button-row">
+            <a href="{{ url_for('admin_reports', format='csv') }}" class="admin-btn primary"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+            <a href="{{ url_for('admin_reports', format='pdf') }}" class="admin-btn subtle"><i class="fa-solid fa-file-pdf"></i> Export PDF</a>
+        </div>
+    </section>
+
+    <section class="admin-card-grid admin-card-grid-4">
+        <article class="admin-stat-card"><span>Total Users</span><strong>{{ report_payload.metrics.total_users }}</strong></article>
+        <article class="admin-stat-card"><span>Total Transactions</span><strong>{{ report_payload.metrics.total_transactions }}</strong></article>
+        <article class="admin-stat-card"><span>Total Expenses</span><strong>Rs. {{ '{:,.0f}'.format(report_payload.metrics.total_expenses) }}</strong></article>
+        <article class="admin-stat-card accent"><span>AI Requests Today</span><strong>{{ report_payload.metrics.ai_requests_today }}</strong></article>
+    </section>
+
+    <section class="admin-content-grid admin-content-grid-tight">
+        <article class="admin-surface admin-table-panel">
+            <div class="admin-panel-head"><h3>User Snapshot</h3><span>Latest 50 users</span></div>
+            <div class="admin-table-wrap" role="region" aria-label="Admin report users table" tabindex="0">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Transactions</th>
+                            <th>Expenses</th>
+                            <th>AI Requests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in report_payload.users %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.email }}</td>
+                            <td>{{ item.transactions }}</td>
+                            <td>Rs. {{ '{:,.0f}'.format(item.expenses_total or 0) }}</td>
+                            <td>{{ item.ai_requests }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="admin-empty-cell">No users available for export.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="admin-surface">
+            <div class="admin-panel-head"><h3>Recent Report Activity</h3><span>Audit trail</span></div>
+            <div class="admin-mini-feed">
+                {% for item in report_payload.recent_report_activity %}
+                <div class="admin-mini-item">
+                    <strong>{{ item.title }}</strong>
+                    <p>{{ item.user_name }} • {{ item.activity_type }}</p>
+                    <small>{{ item.created_at }}</small>
+                </div>
+                {% else %}
+                <p class="admin-empty-state">No recent export-related activity found.</p>
+                {% endfor %}
+            </div>
+        </article>
+    </section>
+</section>
+{% endblock %}

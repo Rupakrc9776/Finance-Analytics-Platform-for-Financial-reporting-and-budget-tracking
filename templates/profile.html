@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}Profile | Smart Finance Insights{% endblock %}
+
+{% block content %}
+
+<section class="account-page fade">
+
+    <div class="page-heading-wrap">
+        <h1 class="page-heading">Profile</h1>
+        <p class="page-subheading">Manage your identity, public links, and account summary from one place.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <form action="/profile" method="POST" enctype="multipart/form-data" class="account-grid">
+
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="profile_image_action" id="profileImageAction" value="">
+
+        <div class="account-column account-column-primary">
+
+            <section class="profile-header-card card-surface">
+
+                <div class="profile-header-top">
+
+                    <div class="profile-avatar-shell">
+
+                        {% if profile_image_url %}
+                        <img id="profilePreview" class="profile-avatar" src="{{ url_for('static', filename=user['profile_image']) }}?v={{ user['updated_at'] or user['created_at'] or '' }}" alt="Profile picture">
+                        <div id="profileInitialAvatar" class="profile-avatar profile-avatar-initial" hidden>{{ profile_initial }}</div>
+                        {% else %}
+                        <img id="profilePreview" class="profile-avatar" alt="Profile picture" hidden>
+                        <div id="profileInitialAvatar" class="profile-avatar profile-avatar-initial">{{ profile_initial }}</div>
+                        {% endif %}
+
+                        <div class="profile-upload-actions">
+                            <label for="profileImageInput" class="btn btn-primary btn-sm upload-btn">Change Photo</label>
+                            <button type="button" class="btn btn-secondary btn-sm" id="removePhotoButton">Remove Photo</button>
+                        </div>
+
+                        <input type="file" name="profile_image" id="profileImageInput" accept=".jpg,.jpeg,.png,.webp" class="sr-only">
+                        <input type="checkbox" name="remove_profile_image" id="removeProfileImage" value="1" class="sr-only">
+
+                        <p class="upload-hint">JPG, JPEG, PNG, WEBP up to 2 MB. Drag and drop supported.</p>
+
+                        <div class="upload-dropzone" id="profileDropzone">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Drop image here or choose a file</span>
+                        </div>
+                    </div>
+
+                    <div class="profile-header-copy">
+                        <div class="profile-name-row">
+                            <h2>{{ user['name'] }}</h2>
+                            <span class="verified-pill"><i class="fa-solid fa-circle-check"></i> Verified</span>
+                        </div>
+
+                        <p class="profile-role">Account Status: Protected</p>
+                        <p class="profile-meta"><i class="fa-solid fa-envelope"></i> {{ user['email'] }}</p>
+                        <p class="profile-meta"><i class="fa-solid fa-cake-candles"></i> DOB: {{ user['date_of_birth'] or 'Not set' }}</p>
+                        <p class="profile-meta"><i class="fa-solid fa-location-dot"></i> {{ user['location'] or 'Location not set' }}</p>
+                        <p class="profile-meta"><i class="fa-solid fa-calendar-days"></i> Member since {{ member_since[:10] if member_since else 'Recently' }}</p>
+                        <p class="profile-meta"><i class="fa-solid fa-shield-halved"></i> Email Verified <span class="status-chip success">{% if user['email_verified'] %}Yes{% else %}No{% endif %}</span></p>
+                        <p class="profile-meta"><i class="fa-solid fa-heart-pulse"></i> Financial Health: {{ profile_analytics.financial_health_score }}/100</p>
+                        <p class="profile-meta"><i class="fa-solid fa-award"></i> Achievements: {{ profile_analytics.achievements_earned }}/{{ profile_analytics.achievements_total }}</p>
+                        <p class="profile-meta"><i class="fa-solid fa-list-check"></i> Transactions: {{ profile_analytics.total_transactions }}</p>
+                        <p class="profile-meta"><i class="fa-solid fa-hourglass-half"></i> Account Age: {{ profile_analytics.account_age_days }} days</p>
+
+                        <div class="profile-header-badges">
+                            <span class="status-chip success">Active</span>
+                            <span class="status-chip neutral">Protected</span>
+                            <span class="status-chip info">{{ profile_completion }}% Complete</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="card-surface">
+                <div class="section-head">
+                    <div>
+                        <h2>Personal Information</h2>
+                        <p>Update the details tied to your Smart Finance Insights account.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="name" value="{{ user['name'] }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" value="{{ user['email'] }}" readonly>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" name="phone" value="{{ user['phone'] or '' }}" placeholder="Enter phone number">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="date_of_birth" value="{{ user['date_of_birth'] or '' }}">
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-3">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="location" value="{{ user['location'] or '' }}" placeholder="Enter location">
+                    </div>
+
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" name="city" value="{{ user['city'] or '' }}" placeholder="City">
+                    </div>
+
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" name="state" value="{{ user['state'] or '' }}" placeholder="State">
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label>Country</label>
+                        <input type="text" name="country" value="{{ user['country'] or '' }}" placeholder="Country">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Occupation</label>
+                        <input type="text" name="occupation" value="{{ user['occupation'] or '' }}" placeholder="Occupation">
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label>College / Organization</label>
+                        <input type="text" name="organization" value="{{ user['organization'] or '' }}" placeholder="College or organization">
+                    </div>
+
+                    <div class="form-group">
+                        <label>About / Bio</label>
+                        <textarea name="bio" rows="5" placeholder="Write a short bio">{{ user['bio'] or '' }}</textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card-surface">
+                <div class="section-head">
+                    <div>
+                        <h2>Professional Links</h2>
+                        <p>Connect your public developer and professional profiles.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid form-grid-2">
+                    <div class="form-group">
+                        <label>GitHub Profile URL</label>
+                        <input type="url" name="github_url" value="{{ user['github_url'] or '' }}" placeholder="https://github.com/username">
+                        {% if user['github_url'] %}
+                        <a class="inline-link" href="{{ user['github_url'] }}" target="_blank" rel="noopener">Open GitHub</a>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label>LinkedIn Profile URL</label>
+                        <input type="url" name="linkedin_url" value="{{ user['linkedin_url'] or '' }}" placeholder="https://linkedin.com/in/username">
+                        {% if user['linkedin_url'] %}
+                        <a class="inline-link" href="{{ user['linkedin_url'] }}" target="_blank" rel="noopener">Open LinkedIn</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="account-column account-column-sidebar">
+
+            <section class="card-surface summary-panel">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Account Summary</h2>
+                        <p>Profile completeness and core account indicators.</p>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <article class="summary-card">
+                        <span>Account Status</span>
+                        <strong>Protected</strong>
+                    </article>
+
+                    <article class="summary-card">
+                        <span>Member Since</span>
+                        <strong>{{ member_since[:10] if member_since else 'Recently' }}</strong>
+                    </article>
+
+                    <article class="summary-card">
+                        <span>Email Verified</span>
+                        <strong>{% if user['email_verified'] %}Verified{% else %}Pending{% endif %}</strong>
+                    </article>
+
+                    <article class="summary-card summary-card-accent">
+                        <span>Profile Completion</span>
+                        <strong>{{ profile_completion }}% Complete</strong>
+                    </article>
+                </div>
+
+                <div class="progress-shell" aria-hidden="true">
+                    <div class="progress-bar" data-width="{{ profile_completion }}"></div>
+                </div>
+            </section>
+
+            <section class="card-surface summary-panel">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Financial Journey</h2>
+                        <p>Performance overview from your tracked finance activity.</p>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <article class="summary-card">
+                        <span>Journey Stage</span>
+                        <strong>{{ profile_analytics.journey_stage }}</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Account Age</span>
+                        <strong>{{ profile_analytics.account_age_days }} days</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Health Score</span>
+                        <strong>{{ profile_analytics.financial_health_score }}/100</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Transactions</span>
+                        <strong>{{ profile_analytics.total_transactions }}</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Monthly Income</span>
+                        <strong>Rs. {{ "{:,.0f}".format(profile_analytics.monthly_income) }}</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Monthly Expenses</span>
+                        <strong>Rs. {{ "{:,.0f}".format(profile_analytics.monthly_expenses) }}</strong>
+                    </article>
+                    <article class="summary-card">
+                        <span>Monthly Savings</span>
+                        <strong>Rs. {{ "{:,.0f}".format(profile_analytics.monthly_savings) }}</strong>
+                    </article>
+                    <article class="summary-card summary-card-accent">
+                        <span>Achievements Earned</span>
+                        <strong>{{ profile_analytics.achievements_earned }}/{{ profile_analytics.achievements_total }}</strong>
+                    </article>
+                </div>
+            </section>
+
+            <section class="card-surface summary-panel">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Mini Financial Summary</h2>
+                        <p>Recent financial health trend based on your snapshots.</p>
+                    </div>
+                </div>
+                <div class="chart-viewport profile-health-viewport">
+                    <canvas id="profileHealthMiniChart"></canvas>
+                </div>
+            </section>
+
+            <section class="card-surface summary-panel">
+                <div class="section-head compact">
+                    <div>
+                        <h2>Recent Activities</h2>
+                        <p>Latest account and financial actions.</p>
+                    </div>
+                </div>
+
+                <ul class="notification-history-list compact">
+                    {% if recent_activities %}
+                        {% for item in recent_activities %}
+                        <li>
+                            <div>
+                                <strong><i class="{{ item.icon }}"></i> {{ item.title }}</strong>
+                                <p>{{ item.description }}</p>
+                                <small>{{ item.time_ago }} • {{ item.created_at }}</small>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    {% else %}
+                        <li>No recent activity yet.</li>
+                    {% endif %}
+                </ul>
+            </section>
+
+            <section class="card-surface note-panel">
+                <h3>Profile Tips</h3>
+                <ul class="detail-list">
+                    <li>Upload a clear profile photo for account recognition.</li>
+                    <li>Add GitHub and LinkedIn links to surface your work.</li>
+                    <li>Keep your bio concise and professional.</li>
+                </ul>
+            </section>
+
+            <section class="card-surface save-panel">
+                <h3>Save Changes</h3>
+                <p>Your updates are applied instantly after validation.</p>
+                <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+                <a href="/account-settings" class="btn btn-secondary btn-block">Open Account Settings</a>
+            </section>
+
+        </div>
+
+    </form>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const profileImageInput = document.getElementById('profileImageInput');
+    const profilePreview = document.getElementById('profilePreview');
+    const profileInitialAvatar = document.getElementById('profileInitialAvatar');
+    const profileDropzone = document.getElementById('profileDropzone');
+    const removePhotoButton = document.getElementById('removePhotoButton');
+    const removeProfileImage = document.getElementById('removeProfileImage');
+    const profileImageAction = document.getElementById('profileImageAction');
+    const profileForm = document.querySelector('form[action="/profile"]');
+
+    function setAvatarPreview(file) {
+        if (!file || !profilePreview) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            profilePreview.src = event.target.result;
+            profilePreview.hidden = false;
+            if (profileInitialAvatar) {
+                profileInitialAvatar.hidden = true;
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    if (profileImageInput && profileDropzone) {
+        profileImageInput.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) {
+                return;
+            }
+
+            removeProfileImage.checked = false;
+            if (profileImageAction) {
+                profileImageAction.value = 'upload';
+            }
+            setAvatarPreview(file);
+            if (profileForm && typeof profileForm.requestSubmit === 'function') {
+                profileForm.requestSubmit();
+            } else if (profileForm) {
+                profileForm.submit();
+            }
+        });
+
+        ['dragenter', 'dragover'].forEach(function (eventName) {
+            profileDropzone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                profileDropzone.classList.add('dragover');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(function (eventName) {
+            profileDropzone.addEventListener(eventName, function (event) {
+                event.preventDefault();
+                profileDropzone.classList.remove('dragover');
+            });
+        });
+
+        profileDropzone.addEventListener('drop', function (event) {
+            const file = event.dataTransfer.files && event.dataTransfer.files[0];
+            if (!file) {
+                return;
+            }
+
+            profileImageInput.files = event.dataTransfer.files;
+            removeProfileImage.checked = false;
+            if (profileImageAction) {
+                profileImageAction.value = 'upload';
+            }
+            setAvatarPreview(file);
+            if (profileForm && typeof profileForm.requestSubmit === 'function') {
+                profileForm.requestSubmit();
+            } else if (profileForm) {
+                profileForm.submit();
+            }
+        });
+    }
+
+    if (removePhotoButton) {
+        removePhotoButton.addEventListener('click', function () {
+            removeProfileImage.checked = true;
+            if (profileImageAction) {
+                profileImageAction.value = 'remove';
+            }
+            if (profileImageInput) {
+                profileImageInput.value = '';
+            }
+            if (profilePreview) {
+                profilePreview.src = '';
+                profilePreview.hidden = true;
+            }
+            if (profileInitialAvatar) {
+                profileInitialAvatar.hidden = false;
+            }
+        });
+    }
+
+    const miniChartCanvas = document.getElementById('profileHealthMiniChart');
+    if (miniChartCanvas && typeof Chart !== 'undefined') {
+        const miniLabels = {{ mini_chart_labels|tojson }};
+        const miniValues = {{ mini_chart_scores|tojson }};
+        const palette = typeof window.getThemeChartPalette === 'function'
+            ? window.getThemeChartPalette()
+            : { series1: getComputedStyle(document.documentElement).getPropertyValue('--theme-chart-series-1').trim() };
+        const themeRgba = typeof window.themeColorToRgba === 'function'
+            ? window.themeColorToRgba
+            : ((color, alpha, fallback) => fallback || color);
+        const registerThemeAwareChart = typeof window.registerThemeAwareChart === 'function'
+            ? window.registerThemeAwareChart
+            : null;
+
+        const profileHealthMiniChart = new Chart(miniChartCanvas, {
+            type: 'line',
+            data: {
+                labels: miniLabels,
+                datasets: [{
+                    label: 'Health Score',
+                    data: miniValues,
+                    borderColor: palette.series1,
+                    backgroundColor: themeRgba(palette.series1, .12),
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+
+        if (registerThemeAwareChart) {
+            registerThemeAwareChart(profileHealthMiniChart, (chart, p, toRgbaColor) => {
+                chart.data.datasets[0].borderColor = p.series1;
+                chart.data.datasets[0].backgroundColor = toRgbaColor(p.series1, .12);
+            });
+        }
+    }
+</script>
+{% endblock %}

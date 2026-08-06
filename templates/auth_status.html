@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | Smart Finance Insights</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card fade auth-status-card {{ status }}">
+        <div class="auth-status-icon {{ status }}">
+            <i class="fa-solid {% if status == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
+        </div>
+
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+
+        <a href="{{ button_url }}" class="btn btn-primary">{{ button_text }}</a>
+    </div>
+
+</body>
+
+</html>
