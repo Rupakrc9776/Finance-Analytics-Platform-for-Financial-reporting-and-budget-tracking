@@ -32,6 +32,7 @@ Thumbs.db
 
 # Logs
 *.log
+logs/
 
 # PDF Reports
 Financial_Report.pdf

@@ -4,6 +4,7 @@ import csv
 import io
 import logging
 import mimetypes
+import os
 import sqlite3
 import uuid
 from pathlib import Path
@@ -13,8 +14,9 @@ from werkzeug.utils import secure_filename
 
 logger = logging.getLogger(__name__)
 
-DATABASE_PATH = Path(__file__).resolve().parent.parent / "finance.db"
-ATTACHMENT_DIR = Path(__file__).resolve().parent.parent / "static" / "uploads" / "jarvis"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "finance.db")))
+ATTACHMENT_DIR = BASE_DIR / "static" / "uploads" / "jarvis"
 ATTACHMENT_DIR.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {"pdf", "csv", "xlsx", "xls", "png", "jpg", "jpeg", "webp"}

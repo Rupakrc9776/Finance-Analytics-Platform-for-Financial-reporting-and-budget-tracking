@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 import uuid
 from datetime import datetime
@@ -19,7 +20,8 @@ from services.finance_context import get_finance_context
 
 logger = logging.getLogger(__name__)
 
-DATABASE_PATH = Path(__file__).resolve().parent.parent / "finance.db"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "finance.db")))
 
 
 def _get_db_connection() -> sqlite3.Connection:

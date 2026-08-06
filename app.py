@@ -40,7 +40,7 @@ except ImportError:
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "smart_finance_secret_key_2026"
+app.secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
 app.permanent_session_lifetime = timedelta(minutes=30)
 
 logging.basicConfig(
@@ -54,9 +54,9 @@ app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
 app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", "587"))
 app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
 app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL", "false").lower() == "true"
-app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "chatterjeerupak6@gmail.com")
-app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "srauqstxinfhopdd")
-app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "chatterjeerupak6@gmail.com")
+app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "")
+app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", app.config["MAIL_USERNAME"] or "no-reply@smartfinance.local")
 app.config["MAIL_DEBUG_LOG_OTP"] = os.getenv("MAIL_DEBUG_LOG_OTP", "false").lower() == "true"
 
 mail = Mail(app)
@@ -66,7 +66,7 @@ from routes.jarvis import jarvis_bp
 app.register_blueprint(jarvis_bp)
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = str(BASE_DIR / "finance.db")
+DATABASE = os.getenv("DATABASE_PATH", str(BASE_DIR / "finance.db"))
 # ---------------- REGISTER ---------------- #
 
 @app.route("/register", methods=["GET", "POST"])
@@ -7184,14 +7184,26 @@ def page_not_found(error):
     return render_template("404.html"),404
 
 
-# ---------------- MAIN ---------------- #
-
-if __name__=="__main__":
+def bootstrap_application():
 
     init_db()
 
+
+# ---------------- MAIN ---------------- #
+
+bootstrap_application()
+
+if __name__=="__main__":
+
+    flask_env = str(os.getenv("FLASK_ENV", "development")).strip().lower()
+    debug_flag = str(os.getenv("FLASK_DEBUG", "")).strip().lower()
+    debug_mode = debug_flag in {"1", "true", "yes", "on"} if debug_flag else flask_env == "development"
+    render_port = int(os.getenv("PORT", "5000"))
+
     app.run(
 
-        debug=True
+        host="0.0.0.0",
+        port=render_port,
+        debug=debug_mode
 
     )

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DATABASE_PATH = Path(__file__).resolve().parent.parent / "finance.db"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "finance.db")))
 
 DEFAULT_SETTINGS: dict[str, object] = {
     "response_style": "balanced",

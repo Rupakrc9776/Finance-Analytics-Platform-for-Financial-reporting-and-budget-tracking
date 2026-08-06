@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DATABASE_PATH = Path(__file__).resolve().parent.parent / "finance.db"
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(BASE_DIR / "finance.db")))
 
 
 def _get_db_connection() -> sqlite3.Connection:
