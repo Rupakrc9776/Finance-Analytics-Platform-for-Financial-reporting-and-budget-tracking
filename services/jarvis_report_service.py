@@ -183,7 +183,7 @@ def generate_pdf_bytes(user_id: int) -> tuple[bytes, str, str]:
         rightMargin=0.7 * inch,
         topMargin=0.7 * inch,
         bottomMargin=0.7 * inch,
-        title="Smart Finance Insights - Jarvis Financial Report",
+        title="Finance Analytics Platform for Financial Reporting and Budget Tracking - Jarvis Financial Report",
     )
 
     styles = getSampleStyleSheet()
@@ -219,7 +219,7 @@ def generate_pdf_bytes(user_id: int) -> tuple[bytes, str, str]:
     health = payload["health"]
 
     elements = [
-        Paragraph("Smart Finance Insights", styles["Title"]),
+        Paragraph("Finance Analytics Platform for Financial Reporting and Budget Tracking", styles["Title"]),
         Paragraph("Professional Financial Report", title_style),
         Paragraph(f"Report ID: {payload['report_id']}", body_style),
         Paragraph(f"Generated At: {payload['generated_at']}", body_style),
@@ -323,7 +323,7 @@ def email_report(user_id: int) -> tuple[bool, str]:
 
     html_body = (
         f"<p>Hello {user.get('name', 'User')},</p>"
-        f"<p>Your Smart Finance Insights professional financial report is attached as a PDF.</p>"
+        f"<p>Your Finance Analytics Platform for Financial Reporting and Budget Tracking professional financial report is attached as a PDF.</p>"
         f"<p><strong>Report ID:</strong> {report_id}<br>"
         f"<strong>Generated At:</strong> {generated_at}</p>"
     )

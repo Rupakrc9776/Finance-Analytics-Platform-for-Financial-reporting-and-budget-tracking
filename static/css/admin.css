@@ -759,6 +759,50 @@
     justify-content: center;
 }
 
+.admin-feedback-distribution {
+    display: grid;
+    gap: 10px;
+    margin: 14px 0;
+}
+
+.admin-feedback-bar-row {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr) 44px;
+    gap: 10px;
+    align-items: center;
+}
+
+.admin-feedback-bar-row span {
+    color: var(--admin-text-secondary);
+    font-size: 13px;
+}
+
+.admin-feedback-bar-track {
+    width: 100%;
+    min-height: 12px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, .18);
+    border: 1px solid var(--admin-border);
+    overflow: hidden;
+}
+
+.admin-feedback-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(59, 130, 246, .95), rgba(56, 189, 248, .9));
+    transition: width .28s ease;
+}
+
+.admin-feedback-bar-row strong {
+    color: var(--admin-text);
+    text-align: right;
+}
+
+.admin-feedback-table-wrap {
+    margin-top: 6px;
+}
+
 .admin-role-badge.developer {
     background: rgba(59, 130, 246, .2);
     border-color: rgba(59, 130, 246, .52);

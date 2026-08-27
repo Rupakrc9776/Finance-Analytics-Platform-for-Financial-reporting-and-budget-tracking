@@ -56,7 +56,7 @@ app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
 app.config["MAIL_USE_SSL"] = os.getenv("MAIL_USE_SSL", "false").lower() == "true"
 app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "")
 app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "")
-app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", app.config["MAIL_USERNAME"] or "no-reply@smartfinance.local")
+app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "")
 app.config["MAIL_DEBUG_LOG_OTP"] = os.getenv("MAIL_DEBUG_LOG_OTP", "false").lower() == "true"
 
 mail = Mail(app)
@@ -700,6 +700,44 @@ def get_admin_logs(cur, limit=12):
     return [dict(row) for row in cur.fetchall()]
 
 
+def get_admin_feedback_summary(cur, recent_limit=10):
+
+    cur.execute("SELECT COUNT(*) AS count, COALESCE(AVG(rating), 0) AS avg_rating FROM feedback")
+    overview = cur.fetchone()
+    total_feedback = int(overview["count"] or 0)
+    average_rating = round(float(overview["avg_rating"] or 0), 2)
+
+    cur.execute("""
+        SELECT rating, COUNT(*) AS count
+        FROM feedback
+        GROUP BY rating
+    """)
+    distribution_map = {int(row["rating"]): int(row["count"] or 0) for row in cur.fetchall()}
+    distribution = {
+        5: distribution_map.get(5, 0),
+        4: distribution_map.get(4, 0),
+        3: distribution_map.get(3, 0),
+        2: distribution_map.get(2, 0),
+        1: distribution_map.get(1, 0),
+    }
+
+    cur.execute("""
+        SELECT f.id, f.rating, f.comment, f.created_at, u.name AS user_name, u.email AS user_email
+        FROM feedback f
+        JOIN users u ON u.id = f.user_id
+        ORDER BY datetime(substr(replace(f.created_at, 'T', ' '), 1, 19)) DESC, f.id DESC
+        LIMIT ?
+    """, (recent_limit,))
+    recent_feedback = [dict(row) for row in cur.fetchall()]
+
+    return {
+        "total_feedback": total_feedback,
+        "average_rating": average_rating,
+        "distribution": distribution,
+        "recent_feedback": recent_feedback,
+    }
+
+
 def get_admin_user_rows(cur, search_term=""):
 
     params = []
@@ -848,7 +886,7 @@ def build_admin_csv_response(report_payload):
     output = StringIO()
     writer = csv.writer(output)
 
-    writer.writerow(["Smart Finance Insights - Developer Admin Report"])
+    writer.writerow(["Finance Analytics Platform for Financial Reporting and Budget Tracking - Developer Admin Report"])
     writer.writerow(["Generated", report_payload["generated_at"]])
     writer.writerow([])
     writer.writerow(["Metric", "Value"])
@@ -894,12 +932,12 @@ def build_admin_pdf_response(report_payload):
         rightMargin=36,
         topMargin=42,
         bottomMargin=36,
-        title="Smart Finance Insights Developer Admin Report",
+        title="Finance Analytics Platform for Financial Reporting and Budget Tracking Developer Admin Report",
     )
 
     styles = getSampleStyleSheet()
     elements = [
-        Paragraph("Smart Finance Insights", styles["Title"]),
+        Paragraph("Finance Analytics Platform for Financial Reporting and Budget Tracking", styles["Title"]),
         Spacer(1, 10),
         Paragraph("Developer Admin Report", styles["Heading2"]),
         Paragraph(f"Generated: {report_payload['generated_at']}", styles["BodyText"]),
@@ -1062,7 +1100,7 @@ def validate_mail_configuration():
     return config_issues, suggestions
 
 
-def verify_smtp_connection():
+def verify_smtp_connection(return_error=False):
 
     mail_server = app.config.get("MAIL_SERVER")
     mail_port = int(app.config.get("MAIL_PORT", 0) or 0)
@@ -1103,20 +1141,24 @@ def verify_smtp_connection():
                 logger.warning("SMTP authentication skipped due to missing credentials")
 
         logger.info("SMTP connection established and closed cleanly")
-        return True
+        result = (True, None) if return_error else True
+        return result
 
     except smtplib.SMTPAuthenticationError:
         logger.exception("SMTP authentication failed. For Gmail, use App Password instead of regular password.")
-        return False
+        result = (False, "SMTP authentication failed. For Gmail, use a Gmail App Password.") if return_error else False
+        return result
     except smtplib.SMTPException:
         logger.exception("SMTP protocol error while validating connection")
-        return False
-    except Exception:
+        result = (False, "The SMTP server rejected the connection or authentication request.") if return_error else False
+        return result
+    except Exception as exc:
         logger.exception("Unexpected error while validating SMTP connection")
-        return False
+        result = (False, f"Could not connect to the SMTP server: {exc}") if return_error else False
+        return result
 
 
-def send_email_message(subject, recipients, html_body, attachments=None):
+def send_email_message(subject, recipients, html_body, attachments=None, return_error=False):
 
     config_issues, suggestions = validate_mail_configuration()
 
@@ -1124,14 +1166,19 @@ def send_email_message(subject, recipients, html_body, attachments=None):
         logger.error("Email config validation failed: %s", "; ".join(config_issues))
         for suggestion in suggestions:
             logger.error("Configuration suggestion: %s", suggestion)
-        return False
+        result = (False, "; ".join(config_issues)) if return_error else False
+        return result
 
-    if not verify_smtp_connection():
+    smtp_result = verify_smtp_connection(return_error=return_error)
+    smtp_ready = smtp_result[0] if return_error else smtp_result
+    if not smtp_ready:
         logger.error("Skipping mail.send because SMTP preflight check failed")
-        return False
+        result = smtp_result if return_error else False
+        return result
 
     try:
-        logger.info("Preparing email send: subject=%s recipients=%s", subject, recipients)
+        masked_recipients = [mask_email(recipient) for recipient in recipients]
+        logger.info("Preparing email send: subject=%s recipients=%s", subject, masked_recipients)
         message = Message(
             subject=subject,
             recipients=recipients,
@@ -1147,11 +1194,21 @@ def send_email_message(subject, recipients, html_body, attachments=None):
                 message.attach(filename, mimetype, data)
 
         mail.send(message)
-        logger.info("Email sent successfully to %s", recipients)
-        return True
+        logger.info("Email sent successfully to %s", masked_recipients)
+        result = (True, None) if return_error else True
+        return result
+    except smtplib.SMTPAuthenticationError:
+        logger.exception("SMTP authentication failed while sending email")
+        result = (False, "SMTP authentication failed. For Gmail, use a Gmail App Password.") if return_error else False
+        return result
+    except smtplib.SMTPException:
+        logger.exception("SMTP error while sending email")
+        result = (False, "The SMTP server rejected the email.") if return_error else False
+        return result
     except Exception:
         logger.exception("mail.send failed with an exception")
-        return False
+        result = (False, "The email could not be sent. Check the Flask terminal for details.") if return_error else False
+        return result
 
 
 def send_welcome_email(user_name, recipient_email):
@@ -1160,7 +1217,7 @@ def send_welcome_email(user_name, recipient_email):
         "welcome.html",
         user_name=user_name,
     )
-    return send_email_message("Welcome to Smart Finance Insights", [recipient_email], html_body)
+    return send_email_message("Welcome to Finance Analytics Platform for Financial Reporting and Budget Tracking", [recipient_email], html_body)
 
 
 def send_password_changed_email(user_name, recipient_email):
@@ -1169,7 +1226,7 @@ def send_password_changed_email(user_name, recipient_email):
         "password_changed.html",
         user_name=user_name,
     )
-    return send_email_message("Your Smart Finance Insights Password Was Changed", [recipient_email], html_body)
+    return send_email_message("Your Finance Analytics Platform for Financial Reporting and Budget Tracking Password Was Changed", [recipient_email], html_body)
 
 
 def send_password_reset_otp_email(user_name, recipient_email, otp_code):
@@ -1179,7 +1236,7 @@ def send_password_reset_otp_email(user_name, recipient_email, otp_code):
         user_name=user_name,
         otp_code=otp_code,
     )
-    return send_email_message("Smart Finance Insights Password Reset OTP", [recipient_email], html_body)
+    return send_email_message("Finance Analytics Platform for Financial Reporting and Budget Tracking Password Reset OTP", [recipient_email], html_body)
 
 
 def send_profile_updated_email(user_name, recipient_email):
@@ -1188,7 +1245,7 @@ def send_profile_updated_email(user_name, recipient_email):
         "profile_updated.html",
         user_name=user_name,
     )
-    return send_email_message("Smart Finance Insights Profile Updated", [recipient_email], html_body)
+    return send_email_message("Finance Analytics Platform for Financial Reporting and Budget Tracking Profile Updated", [recipient_email], html_body)
 
 
 def send_monthly_summary_email(user_name, recipient_email, report_context):
@@ -1203,7 +1260,7 @@ def send_monthly_summary_email(user_name, recipient_email, report_context):
         health_score=report_context["health_score"],
         report_generated_at=report_context["report_generated_at"],
     )
-    return send_email_message("Your Monthly Smart Finance Summary", [recipient_email], html_body)
+    return send_email_message("Your Monthly Finance Analytics Platform for Financial Reporting and Budget Tracking Summary", [recipient_email], html_body)
 
 
 def send_budget_exceeded_email(user_name, recipient_email, month_value, expense_total, budget_total, budget_percent):
@@ -1559,6 +1616,17 @@ def init_db():
     """)
 
     cur.execute("""
+    CREATE TABLE IF NOT EXISTS feedback(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        rating INTEGER NOT NULL CHECK(rating >= 1 AND rating <= 5),
+        comment TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+    """)
+
+    cur.execute("""
     CREATE TABLE IF NOT EXISTS jarvis_settings(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL UNIQUE,
@@ -1618,6 +1686,7 @@ def init_db():
     cur.execute("CREATE INDEX IF NOT EXISTS idx_jarvis_feedback_user_conversation ON jarvis_feedback(user_id, conversation_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_jarvis_settings_user ON jarvis_settings(user_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_jarvis_attachments_user_date ON jarvis_attachments(user_id, created_at)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_feedback_user_date ON feedback(user_id, created_at)")
 
     conn.commit()
     conn.close()
@@ -3750,6 +3819,72 @@ def activities():
     return render_template("activities.html", activities=activity_rows)
 
 
+@app.route("/feedback", methods=["GET", "POST"])
+def feedback():
+
+    if not login_required():
+        return redirect("/login")
+
+    user_id = session["user_id"]
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+
+        if request.method == "POST":
+            if not validate_csrf_token():
+                flash("Invalid security token. Please try again.", "danger")
+                return redirect("/feedback")
+
+            rating_raw = (request.form.get("rating") or "").strip()
+            comment = (request.form.get("comment") or "").strip()
+
+            if not rating_raw.isdigit():
+                flash("Please select a rating between 1 and 5 stars.", "danger")
+                return redirect("/feedback")
+
+            rating = int(rating_raw)
+            if rating < 1 or rating > 5:
+                flash("Rating must be between 1 and 5 stars.", "danger")
+                return redirect("/feedback")
+
+            if len(comment) > 1500:
+                flash("Feedback comment is too long. Please keep it under 1500 characters.", "danger")
+                return redirect("/feedback")
+
+            cur.execute("""
+                INSERT INTO feedback(user_id, rating, comment)
+                VALUES(?,?,?)
+            """, (user_id, rating, comment or None))
+
+            log_activity(
+                cur,
+                user_id,
+                "feedback_submitted",
+                "Feedback Submitted",
+                f"Submitted a {rating}-star application feedback entry.",
+                "fa-solid fa-star",
+                "/feedback",
+            )
+
+            conn.commit()
+            flash("Thank you for your feedback. Your response has been submitted successfully.", "success")
+            return redirect("/feedback")
+
+        cur.execute("""
+            SELECT rating, comment, created_at
+            FROM feedback
+            WHERE user_id=?
+            ORDER BY datetime(substr(replace(created_at, 'T', ' '), 1, 19)) DESC, id DESC
+            LIMIT 6
+        """, (user_id,))
+        user_feedback_rows = cur.fetchall()
+    finally:
+        conn.close()
+
+    return render_template("feedback.html", user_feedback_rows=user_feedback_rows)
+
+
 @app.route("/financial-calendar")
 def financial_calendar():
 
@@ -4905,7 +5040,7 @@ def export_csv():
 
     writer = csv.writer(output)
 
-    writer.writerow(["Smart Finance Insights - Professional Financial Report"])
+    writer.writerow(["Finance Analytics Platform for Financial Reporting and Budget Tracking - Professional Financial Report"])
     writer.writerow(["Generated", report_context["report_generated_at"]])
     writer.writerow(["User", report_context["user"]["name"] if report_context["user"] else "N/A"])
     writer.writerow(["Financial Health Score", report_context["health_score"]["score"]])
@@ -5724,7 +5859,7 @@ def download_pdf():
         rightMargin=40,
         topMargin=46,
         bottomMargin=42,
-        title="Smart Finance Insights - Financial Report",
+        title="Finance Analytics Platform for Financial Reporting and Budget Tracking - Financial Report",
     )
 
     styles = getSampleStyleSheet()
@@ -5754,7 +5889,7 @@ def download_pdf():
 
     elements = []
     elements.append(Spacer(1, 1.4 * inch))
-    elements.append(Paragraph("SMART FINANCE INSIGHTS", title_style))
+    elements.append(Paragraph("Finance Analytics Platform for Financial Reporting and Budget Tracking", title_style))
     elements.append(Spacer(1, 0.12 * inch))
     elements.append(Paragraph("Enterprise Financial Performance Report", heading_style))
     elements.append(Spacer(1, 0.35 * inch))
@@ -5972,10 +6107,10 @@ def download_pdf():
         canvas.saveState()
         canvas.setFont("Helvetica", 42)
         canvas.setFillColor(colors.Color(0.80, 0.84, 0.90, alpha=0.12))
-        canvas.drawCentredString(A4[0] / 2, A4[1] / 2, "SMART FINANCE INSIGHTS")
+        canvas.drawCentredString(A4[0] / 2, A4[1] / 2, "Finance Analytics Platform for Financial Reporting and Budget Tracking")
         canvas.setFont("Helvetica", 8)
         canvas.setFillColor(colors.HexColor("#64748b"))
-        canvas.drawString(doc.leftMargin, 20, f"Smart Finance Insights | Report ID: {report_id}")
+        canvas.drawString(doc.leftMargin, 20, f"Finance Analytics Platform for Financial Reporting and Budget Tracking | Report ID: {report_id}")
         canvas.drawRightString(A4[0] - doc.rightMargin, 20, f"Page {canvas.getPageNumber()}")
         canvas.restoreState()
 
@@ -6025,7 +6160,7 @@ def email_report():
         normal_style = styles["BodyText"]
 
         elements = [
-            Paragraph("Smart Finance Insights", title_style),
+            Paragraph("Finance Analytics Platform for Financial Reporting and Budget Tracking", title_style),
             Spacer(1, 0.1 * inch),
             Paragraph("Financial Report Snapshot", heading_style),
             Paragraph(f"Report ID: {report_id}", normal_style),
@@ -6084,13 +6219,15 @@ def email_report():
         )
         attached_name = f"financial_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
         sent = send_email_message(
-            "Your Smart Finance Report (PDF Attached)",
+            "Financial Report - Finance Analytics Platform",
             [user["email"]],
             html_body,
             attachments=[{"filename": attached_name, "mimetype": "application/pdf", "data": pdf_bytes}],
+            return_error=True,
         )
 
-        if sent:
+        email_sent, email_error = sent
+        if email_sent:
             log_activity(
                 cur,
                 user_id,
@@ -6110,10 +6247,14 @@ def email_report():
                 "success",
             )
             conn.commit()
-            flash("Report emailed successfully.", "success")
+            flash("Financial report sent successfully to your registered email.", "success")
             return redirect("/reports")
 
-        flash("Unable to send report email right now. Please verify mail settings.", "danger")
+        flash(f"Unable to send the report. {email_error or 'Please check the email configuration.'}", "danger")
+        return redirect("/reports")
+    except Exception:
+        logger.exception("Email report request failed before delivery")
+        flash("Unable to send the report. Please check the email configuration.", "danger")
         return redirect("/reports")
     finally:
         conn.close()
@@ -6976,6 +7117,7 @@ def admin_dashboard():
         recent_activity = get_admin_activity_feed(cur, limit=16)
         notifications = get_admin_notifications(cur, limit=10)
         logs = get_admin_logs(cur, limit=12)
+        feedback_summary = get_admin_feedback_summary(cur, recent_limit=8)
         settings_snapshot = build_admin_settings_snapshot(cur)
     finally:
         conn.close()
@@ -6989,6 +7131,7 @@ def admin_dashboard():
         recent_activity=recent_activity,
         notifications=notifications,
         logs=logs,
+        feedback_summary=feedback_summary,
         settings_snapshot=settings_snapshot,
     )
 

@@ -313,6 +313,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const sidebar = document.querySelector(".sidebar");
     const mainContent = document.querySelector(".main-content");
 
+    if (sidebar) {
+        const sidebarScrollKey = "sfi-sidebar-scroll-top";
+        const savedSidebarScroll = Number(sessionStorage.getItem(sidebarScrollKey));
+
+        if (Number.isFinite(savedSidebarScroll)) {
+            sidebar.scrollTop = savedSidebarScroll;
+        }
+
+        sidebar.addEventListener("scroll", () => {
+            sessionStorage.setItem(sidebarScrollKey, String(sidebar.scrollTop));
+        }, { passive: true });
+    }
+
     if (menuBtn && sidebar && mainContent) {
         menuBtn.addEventListener("click", () => {
             sidebar.classList.toggle("active");

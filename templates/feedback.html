@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback | Finance Analytics Platform for Financial Reporting and Budget Tracking{% endblock %}
+
+{% block content %}
+<section class="account-page feedback-page fade">
+
+    <div class="page-heading-wrap">
+        <h1 class="page-heading">Feedback</h1>
+        <p class="page-subheading">How would you rate your experience?</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="flash-message {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="feedback-layout">
+        <section class="card-surface feedback-form-card">
+            <h2>Share Your Feedback</h2>
+            <p class="feedback-helper">Your rating helps us improve the platform experience. Comments are optional.</p>
+
+            <form action="{{ url_for('feedback') }}" method="POST" id="feedbackForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="rating" id="feedbackRatingInput" value="">
+
+                <div class="form-group">
+                    <label>Rating <span class="required-mark">*</span></label>
+                    <div class="feedback-stars" role="radiogroup" aria-label="Feedback rating">
+                        {% for star in range(1, 6) %}
+                        <button type="button" class="feedback-star-btn" data-rating="{{ star }}" aria-label="{{ star }} star{% if star > 1 %}s{% endif %}" aria-pressed="false">
+                            <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <p class="feedback-rating-note" id="feedbackRatingNote">Select a rating from 1 to 5 stars.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedbackComment">Feedback / Suggestions (Optional)</label>
+                    <textarea id="feedbackComment" name="comment" rows="6" maxlength="1500" placeholder="Tell us what worked well and what we can improve."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit Feedback</button>
+            </form>
+        </section>
+
+        <section class="card-surface feedback-history-card">
+            <h2>Your Recent Feedback</h2>
+            <p class="feedback-helper">Your latest submissions are shown here for quick reference.</p>
+
+            <div class="feedback-history-list">
+                {% for item in user_feedback_rows %}
+                <article class="feedback-history-item">
+                    <div class="feedback-history-rating" aria-label="{{ item['rating'] }} out of 5 stars">
+                        {% for star in range(1, 6) %}
+                        <i class="fa-solid fa-star {% if star <= item['rating'] %}active{% endif %}" aria-hidden="true"></i>
+                        {% endfor %}
+                    </div>
+                    <p class="feedback-history-comment">{{ item['comment'] if item['comment'] else 'No comment provided.' }}</p>
+                    <small>{{ item['created_at'] }}</small>
+                </article>
+                {% else %}
+                <div class="feedback-empty-state">
+                    <i class="fa-regular fa-message"></i>
+                    <p>No feedback submitted yet. Select a star rating and share your first response.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const form = document.getElementById('feedbackForm');
+        if (!form) {
+            return;
+        }
+
+        const hiddenRatingInput = document.getElementById('feedbackRatingInput');
+        const ratingNote = document.getElementById('feedbackRatingNote');
+        const starButtons = Array.from(document.querySelectorAll('.feedback-star-btn'));
+
+        function renderStars(selected) {
+            starButtons.forEach(function (button) {
+                const buttonRating = Number(button.dataset.rating || '0');
+                const active = buttonRating <= selected;
+                button.classList.toggle('active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+
+            if (selected > 0) {
+                ratingNote.textContent = selected + ' star' + (selected > 1 ? 's' : '') + ' selected.';
+                ratingNote.classList.remove('error');
+            } else {
+                ratingNote.textContent = 'Select a rating from 1 to 5 stars.';
+            }
+        }
+
+        starButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const nextRating = Number(button.dataset.rating || '0');
+                hiddenRatingInput.value = String(nextRating);
+                renderStars(nextRating);
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
+            const ratingValue = Number(hiddenRatingInput.value || '0');
+            if (!ratingValue || ratingValue < 1 || ratingValue > 5) {
+                event.preventDefault();
+                ratingNote.textContent = 'Please select a valid star rating before submitting.';
+                ratingNote.classList.add('error');
+            }
+        });
+
+        renderStars(0);
+    })();
+</script>
+{% endblock %}

@@ -85,6 +85,20 @@
         suggestionsToggle.setAttribute("aria-expanded", shouldExpand ? "true" : "false");
     }
 
+    if (suggestionsEl) {
+        suggestionsEl.addEventListener("click", function (event) {
+            const chip = event.target.closest(".jarvis-chip");
+            if (!chip || !suggestionsEl.contains(chip) || isWaiting) {
+                return;
+            }
+
+            event.preventDefault();
+            input.value = chip.dataset.prompt || chip.textContent.trim();
+            autoResizeInput();
+            input.focus();
+        });
+    }
+
     function ensureTimelineEl() {
         if (timelineEl) {
             return timelineEl;
@@ -228,7 +242,7 @@
         const welcome = document.createElement("section");
         welcome.className = "jarvis-welcome";
         welcome.innerHTML = [
-            '<h3>Welcome to Smart Finance AI Assistant</h3>',
+            '<h3>Welcome to Finance Analytics Platform for Financial Reporting and Budget Tracking AI Assistant</h3>',
             '<p>Ask about spending, savings, goals, investments, and reports. I will answer using your finance data.</p>',
             '<div class="jarvis-welcome-pills">',
             '<span>Budget analysis</span>',

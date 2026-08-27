@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💰 Smart Finance Insights
+# 💰 Finance Analytics Platform for Financial Reporting and Budget Tracking
 
 ### AI-Powered Personal Finance Management Platform
 
@@ -19,9 +19,9 @@ Manage your income, expenses, budgets, investments, financial goals, and AI-driv
 
 # 📖 Overview
 
-**Smart Finance Insights** is a modern AI-powered personal finance management platform developed using **Flask** and **SQLite**. The platform enables users to efficiently manage their daily financial activities, monitor income and expenses, plan monthly budgets, track investments, generate professional reports, and receive AI-powered financial recommendations.
+**Finance Analytics Platform for Financial Reporting and Budget Tracking** is a modern AI-powered personal finance management platform developed using **Flask** and **SQLite**. The platform enables users to efficiently manage their daily financial activities, monitor income and expenses, plan monthly budgets, track investments, generate professional reports, and receive AI-powered financial recommendations.
 
-Unlike traditional expense trackers, Smart Finance Insights combines financial management with intelligent analytics to help users make smarter financial decisions.
+Unlike traditional expense trackers, Finance Analytics Platform for Financial Reporting and Budget Tracking combines financial management with intelligent analytics to help users make smarter financial decisions.
 
 The application has been designed with a clean user interface, responsive layout, secure authentication system, and modular backend architecture, making it suitable for academic demonstration, portfolio showcasing, and future real-world expansion.
 
@@ -108,7 +108,7 @@ The application has been designed with a clean user interface, responsive layout
 
 # 🤖 AI Capabilities
 
-Smart Finance Insights integrates Artificial Intelligence to enhance the financial planning experience.
+Finance Analytics Platform for Financial Reporting and Budget Tracking integrates Artificial Intelligence to enhance the financial planning experience.
 
 Current AI Features include:
 
@@ -120,7 +120,7 @@ Current AI Features include:
 
 ---
 
-# 🚀 Why Smart Finance Insights?
+# 🚀 Why Finance Analytics Platform for Financial Reporting and Budget Tracking?
 
 ✔ Modern User Interface
 
@@ -149,7 +149,7 @@ Current AI Features include:
 > Screenshot will be added here after final documentation.
 
 ```md
-![Smart Finance Insights](docs/screenshots/home.png)
+![Finance Analytics Platform for Financial Reporting and Budget Tracking](docs/screenshots/home.png)
 ```
 
 ---
@@ -172,7 +172,7 @@ Current AI Features include:
 # 🏗️ Project Architecture
 
 ```
-                    Smart Finance Insights
+                    Finance Analytics Platform for Financial Reporting and Budget Tracking
                              │
         ┌────────────────────┼────────────────────┐
         │                    │                    │
@@ -383,7 +383,7 @@ http://127.0.0.1:5000
 > A modern AI-powered finance management platform featuring a clean dashboard, intelligent analytics, AI financial assistant, developer admin panel, interactive reports, and responsive user experience.
 
 <p align="center">
-  <img src="docs/screenshots/home.png" alt="Smart Finance Insights Preview" width="100%">
+  <img src="docs/screenshots/home.png" alt="Finance Analytics Platform for Financial Reporting and Budget Tracking Preview" width="100%">
 </p>
 
 ---
@@ -486,7 +486,7 @@ See the LICENSE file for more details.
 
 ## 💙 Thank You for Visiting
 
-**Smart Finance Insights** was developed as an AI-powered personal finance management platform to demonstrate modern web development practices, financial analytics, and AI-assisted decision making.
+**Finance Analytics Platform for Financial Reporting and Budget Tracking** was developed as an AI-powered personal finance management platform to demonstrate modern web development practices, financial analytics, and AI-assisted decision making.
 
 ⭐ If you like this project, don't forget to star the repository!
 

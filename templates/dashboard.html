@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-Dashboard | Smart Finance Insights
+Dashboard | Finance Analytics Platform for Financial Reporting and Budget Tracking
 {% endblock %}
 
 {% block page_title %}
@@ -330,17 +330,24 @@ Dashboard | Smart Finance Insights
         }
     });
 
+    console.log("SMART FINANCE CHART INTERACTION VERSION 2026-08-17");
+
     const pieCtx = document.getElementById("pieChart");
     const pieLabels = JSON.parse('{{ pie_labels|tojson|safe }}');
     const pieValues = JSON.parse('{{ pie_values|tojson|safe }}');
 
     if (pieCtx) {
+        const pieValueFormatter = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 });
+        const pieOffsets = pieValues.map(() => 0);
+        let pieSelectedIndex = null;
+
         const pieChart = new Chart(pieCtx, {
             type: "pie",
             data: {
                 labels: pieLabels,
                 datasets: [{
                     data: pieValues,
+                    offset: pieOffsets,
                     hoverOffset: 20,
                     backgroundColor: [
                         chartPalette.series1,
@@ -358,13 +365,53 @@ Dashboard | Smart Finance Insights
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                events: ["mousemove", "mouseout", "click", "touchstart", "touchmove"],
+                interaction: {
+                    mode: "nearest",
+                    intersect: true
+                },
                 plugins: {
                     legend: {
                         position: "bottom"
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title(items) {
+                                return items[0]?.label || "";
+                            },
+                            label(context) {
+                                const amount = Number(context.raw) || 0;
+                                const total = pieValues.reduce((sum, v) => sum + Math.abs(Number(v) || 0), 0);
+                                const percentage = total ? ((Math.abs(amount) / total) * 100).toFixed(1) : "0.0";
+                                return `₹${pieValueFormatter.format(amount)} (${percentage}% of total)`;
+                            }
+                        }
                     }
+                },
+                onHover(_event, elements) {
+                    pieCtx.style.cursor = elements.length ? "pointer" : "default";
+                },
+                onClick(_event, elements) {
+                    pieSelectedIndex = elements.length ? elements[0].index : null;
+                    console.log("REAL PIE CLICK", pieSelectedIndex);
+
+                    pieOffsets.fill(0);
+                    if (pieSelectedIndex !== null) {
+                        pieOffsets[pieSelectedIndex] = 30;
+                    }
+                    pieChart.update();
                 }
             }
         });
+
+        document.addEventListener("pointerdown", (event) => {
+            if (pieCtx.contains(event.target) || pieSelectedIndex === null) {
+                return;
+            }
+            pieSelectedIndex = null;
+            pieOffsets.fill(0);
+            pieChart.update();
+        }, { passive: true });
 
         if (registerThemeAwareChart) {
             registerThemeAwareChart(pieChart, (chart, palette) => {

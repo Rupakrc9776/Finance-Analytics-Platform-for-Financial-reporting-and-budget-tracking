@@ -1,6 +1,6 @@
 {% extends "admin_base.html" %}
 
-{% block title %}Admin Dashboard | Smart Finance Insights{% endblock %}
+{% block title %}Admin Dashboard | Finance Analytics Platform for Financial Reporting and Budget Tracking{% endblock %}
 {% block admin_heading %}Developer Dashboard{% endblock %}
 
 {% block content %}
@@ -48,6 +48,62 @@
                 <canvas id="adminAiUsageChart"></canvas>
             </div>
         </article>
+    </section>
+
+    <section class="admin-surface" id="feedback-analytics">
+        <div class="admin-panel-head">
+            <h3>Feedback Analytics</h3>
+            <span>Platform experience submissions</span>
+        </div>
+
+        <section class="admin-card-grid admin-card-grid-4">
+            <article class="admin-stat-card"><span>Total Feedback</span><strong>{{ feedback_summary.total_feedback }}</strong></article>
+            <article class="admin-stat-card accent"><span>Average Rating</span><strong>{{ '%.2f'|format(feedback_summary.average_rating) }} / 5</strong></article>
+            <article class="admin-stat-card"><span>5 Stars</span><strong>{{ feedback_summary.distribution[5] }}</strong></article>
+            <article class="admin-stat-card"><span>1 Star</span><strong>{{ feedback_summary.distribution[1] }}</strong></article>
+        </section>
+
+        <div class="admin-feedback-distribution">
+            {% for star in [5, 4, 3, 2, 1] %}
+            <div class="admin-feedback-bar-row">
+                <span>{{ star }} Stars</span>
+                <div class="admin-feedback-bar-track">
+                    <div class="admin-feedback-bar-fill" data-feedback-count="{{ feedback_summary.distribution[star] }}" data-feedback-total="{{ feedback_summary.total_feedback }}"></div>
+                </div>
+                <strong>{{ feedback_summary.distribution[star] }}</strong>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="admin-table-wrap admin-feedback-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Submitted At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in feedback_summary.recent_feedback %}
+                    <tr>
+                        <td>
+                            <strong>{{ item.user_name }}</strong>
+                            <span class="admin-user-meta">{{ item.user_email }}</span>
+                        </td>
+                        <td>{{ item.rating }} / 5</td>
+                        <td>{{ item.comment if item.comment else 'No comment provided.' }}</td>
+                        <td>{{ item.created_at }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="admin-empty-cell">No feedback submissions available yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </section>
 
     <section class="admin-content-grid">
@@ -185,5 +241,16 @@
         },
         options: { scales: window.adminScaleDefaults }
     });
+</script>
+<script>
+    (function () {
+        const bars = document.querySelectorAll('.admin-feedback-bar-fill');
+        bars.forEach(function (bar) {
+            const count = Number(bar.dataset.feedbackCount || '0');
+            const total = Number(bar.dataset.feedbackTotal || '0');
+            const percent = total > 0 ? (count / total) * 100 : 0;
+            bar.style.width = Math.max(0, Math.min(100, percent)).toFixed(2) + '%';
+        });
+    })();
 </script>
 {% endblock %}

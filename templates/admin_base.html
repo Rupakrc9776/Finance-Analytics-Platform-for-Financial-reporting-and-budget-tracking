@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}Developer Admin | Smart Finance Insights{% endblock %}</title>
+    <title>{% block title %}Developer Admin | Finance Analytics Platform for Financial Reporting and Budget Tracking{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
                 <span class="admin-brand-mark"><i class="fa-solid fa-shield-halved"></i></span>
                 <div>
                     <strong>Developer Admin</strong>
-                    <span>Smart Finance Insights</span>
+                    <span>Finance Analytics Platform for Financial Reporting and Budget Tracking</span>
                 </div>
             </div>
 
@@ -28,6 +28,7 @@
                 <a href="{{ url_for('admin_users') }}" class="{% if admin_nav_route == 'admin_users' %}active{% endif %}"><i class="fa-solid fa-users"></i><span>Users</span></a>
                 <a href="{{ url_for('admin_analytics') }}" class="{% if admin_nav_route == 'admin_analytics' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></a>
                 <a href="{{ url_for('admin_analytics') }}#ai-usage" class="{% if admin_nav_route == 'admin_analytics' %}active{% endif %}"><i class="fa-solid fa-robot"></i><span>AI Usage</span></a>
+                <a href="{{ url_for('admin_dashboard') }}#feedback-analytics" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-star"></i><span>Feedback</span></a>
                 <a href="{{ url_for('admin_reports') }}" class="{% if admin_nav_route == 'admin_reports' %}active{% endif %}"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
                 <a href="{{ url_for('admin_dashboard') }}#activity-feed" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-solid fa-wave-square"></i><span>Activity Feed</span></a>
                 <a href="{{ url_for('admin_dashboard') }}#notifications" class="{% if admin_nav_route == 'admin_dashboard' %}active{% endif %}"><i class="fa-regular fa-bell"></i><span>Notifications</span></a>

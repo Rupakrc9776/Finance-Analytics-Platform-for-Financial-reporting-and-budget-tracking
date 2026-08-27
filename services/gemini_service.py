@@ -150,7 +150,7 @@ def _build_chat_prompt(
     attachment_block = "\n".join(attachment_lines)
 
     return (
-        "You are JARVIS, a financial assistant inside Smart Finance Insights. "
+        "You are JARVIS, a financial assistant inside Finance Analytics Platform for Financial Reporting and Budget Tracking. "
         "Answer only using the provided financial context. "
         "Use the provided financial context to answer accurately, clearly, and safely. "
         "Never invent financial numbers, assumptions, or events that are not present in the context. "
