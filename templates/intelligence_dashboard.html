@@ -237,7 +237,7 @@
                     <strong>{{ item['title'] }}</strong>
                     <span class="status-chip {{ item['priority'] or 'info' }}">{{ (item['priority'] or 'info')|title }}</span>
                     <p>{{ item['message'] }}</p>
-                    <small>{{ item['created_at'] }}</small>
+                    <small>{{ item['created_at']|ist_datetime }}</small>
                 </li>
                 {% endfor %}
                 {% else %}

@@ -140,7 +140,12 @@ Budget Planner | Finance Analytics Platform for Financial Reporting and Budget T
             return;
         }
 
-        const today = new Date();
+        const today = new Date(new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Kolkata',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date()));
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         const isoDate = today.getFullYear() + '-' + month + '-' + day;

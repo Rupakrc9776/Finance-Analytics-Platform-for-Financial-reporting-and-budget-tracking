@@ -11,6 +11,7 @@ import logging
 import smtplib
 from pathlib import Path
 from datetime import datetime, timedelta
+from services.time_utils import format_ist, ist_now, utc_now
 from dotenv import load_dotenv
 from flask import send_file
 from flask_mail import Mail, Message
@@ -41,6 +42,8 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
+
+app.jinja_env.filters["ist_datetime"] = format_ist
 app.permanent_session_lifetime = timedelta(minutes=30)
 
 logging.basicConfig(
@@ -223,7 +226,7 @@ def format_time_ago(raw_value):
     if not dt:
         return "just now"
 
-    now = datetime.utcnow()
+    now = utc_now()
     delta = now - dt
     seconds = int(max(delta.total_seconds(), 0))
 
@@ -386,7 +389,7 @@ def save_profile_upload(uploaded_file, user_id):
 
     filename = secure_filename(uploaded_file.filename)
     suffix = Path(filename).suffix.lower()
-    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+    timestamp = ist_now().strftime("%Y%m%d%H%M%S%f")
     unique_name = f"profile_{int(user_id)}_{timestamp}{suffix}"
     target_path = PROFILE_UPLOAD_FOLDER / unique_name
     try:
@@ -423,7 +426,7 @@ def get_user_profile_image(user):
         if normalized and target_path and target_path.exists():
             return url_for("static", filename=normalized)
 
-    return None
+        return None
 
 
 def prepare_user_for_template(user):
@@ -510,7 +513,7 @@ def get_directory_usage(path_value):
 
 def build_recent_day_series(rows, days=7, value_key="count"):
 
-    today = datetime.utcnow().date()
+    today = ist_now().date()
     row_map = {
         str(row["bucket"]): int(row[value_key] or 0)
         for row in rows
@@ -528,7 +531,7 @@ def build_recent_day_series(rows, days=7, value_key="count"):
 
 def build_recent_month_series(rows, months=6, value_key="count"):
 
-    cursor = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    cursor = ist_now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     month_keys = []
     for _ in range(months):
         month_keys.append(cursor.strftime("%Y-%m"))
@@ -877,7 +880,7 @@ def build_admin_reports_payload(cur):
         "metrics": metrics,
         "users": user_rows,
         "recent_report_activity": recent_report_activity,
-        "generated_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "generated_at": ist_now().strftime("%Y-%m-%d %H:%M:%S IST"),
     }
 
 
@@ -1882,7 +1885,7 @@ def inject_account_context():
         "current_profile_image_version": (current_user["updated_at"] if current_user and current_user["updated_at"] else current_user["created_at"] if current_user else ""),
         "current_theme_mode": session.get("theme_mode", "light"),
         "csrf_token": generate_csrf_token,
-        "current_year": datetime.utcnow().year,
+        "current_year": ist_now().year,
         "show_footer": show_footer,
         "unread_notifications_count": unread_notifications_count,
         "recent_notifications": recent_notifications,
@@ -1999,7 +2002,7 @@ def get_financial_snapshot(cur, user_id):
 
 def get_spending_analysis(cur, user_id):
 
-    current_month_date = datetime.now().replace(day=1)
+    current_month_date = ist_now().replace(day=1)
     previous_month_date = shift_to_previous_month(current_month_date)
     current_month = month_key(current_month_date)
     previous_month = month_key(previous_month_date)
@@ -2459,7 +2462,7 @@ def build_rule_based_ai_insights(financial_snapshot, spending_analysis, budget_r
 
 def save_health_score_snapshot(cur, user_id, health_score):
 
-    score_date = datetime.utcnow().strftime("%Y-%m-%d")
+    score_date = ist_now().strftime("%Y-%m-%d")
     cur.execute("""
         INSERT INTO health_scores(user_id, score, status, score_date)
         VALUES(?,?,?,?)
@@ -2470,7 +2473,7 @@ def save_health_score_snapshot(cur, user_id, health_score):
 
 def store_recommendations_snapshot(cur, user_id, budget_recommendations, ai_insights):
 
-    generated_on = datetime.utcnow().strftime("%Y-%m-%d")
+    generated_on = ist_now().strftime("%Y-%m-%d")
     cur.execute("DELETE FROM recommendations WHERE user_id=? AND generated_on=?", (user_id, generated_on))
 
     bucketed_items = []
@@ -2514,7 +2517,7 @@ def get_savings_prediction(cur, user_id, financial_snapshot, spending_analysis, 
         gap = max(float(next_goal["target_amount"]) - float(next_goal["saved_amount"]), 0)
         if monthly_savings_positive > 0:
             months_to_complete = max(1, int(round(gap / monthly_savings_positive + 0.49)))
-            eta_date = datetime.utcnow() + timedelta(days=months_to_complete * 30)
+            eta_date = ist_now() + timedelta(days=months_to_complete * 30)
             expected_goal_achievement_date = eta_date.strftime("%d %b %Y")
         else:
             expected_goal_achievement_date = "Increase monthly savings to estimate"
@@ -2532,7 +2535,7 @@ def get_savings_prediction(cur, user_id, financial_snapshot, spending_analysis, 
 
 def get_financial_timeline(cur, user_id, monthly_income, months=6):
 
-    month_end = datetime.now().replace(day=1)
+    month_end = ist_now().replace(day=1)
     month_keys = []
     walker = month_end
     for _ in range(months):
@@ -2685,7 +2688,7 @@ def get_user_achievements(cur, user_id, financial_snapshot, spending_analysis, b
             row["id"],
             current_value,
             unlocked,
-            datetime.utcnow().strftime("%Y-%m-%d") if unlocked else None,
+            ist_now().strftime("%Y-%m-%d") if unlocked else None,
         ))
 
         cur.execute("""
@@ -2785,8 +2788,8 @@ def create_notification_if_missing(cur, user_id, notification_type, title, messa
 def refresh_notifications(cur, current_user, financial_snapshot, spending_analysis, budget_recommendations, goal_summary, investment_summary):
 
     user_id = current_user["id"]
-    this_month_key = datetime.utcnow().strftime("%Y-%m")
-    today_key = datetime.utcnow().strftime("%Y-%m-%d")
+    this_month_key = ist_now().strftime("%Y-%m")
+    today_key = ist_now().strftime("%Y-%m-%d")
 
     if int(current_user["notify_budget_alerts"] or 0) and budget_recommendations["budget_utilization_percent"] > 100:
         create_notification_if_missing(
@@ -3062,7 +3065,7 @@ def dashboard():
 
     # ---------------- Greeting ---------------- #
 
-    now = datetime.now()
+    now = ist_now()
 
     today = now.strftime("%d %B %Y")
     current_time = now.strftime("%I:%M %p")
@@ -3238,7 +3241,7 @@ def update_income():
         "income_updated",
         "Income Updated",
         f"Income has been updated to Rs. {safe_float(income):,.0f}.",
-        f"income_updated:{datetime.utcnow().strftime('%Y-%m-%d')}",
+                f"income_updated:{ist_now().strftime('%Y-%m-%d')}",
         "success",
     )
 
@@ -3330,7 +3333,7 @@ def add_expense():
         "expense_added",
         "Expense Recorded",
         f"New expense in {category} for Rs. {safe_float(amount):,.0f} was recorded.",
-        f"expense_added:{datetime.utcnow().strftime('%Y-%m-%d')}:{category}:{safe_float(amount):.2f}",
+                f"expense_added:{ist_now().strftime('%Y-%m-%d')}:{category}:{safe_float(amount):.2f}",
         "info",
     )
 
@@ -4224,7 +4227,7 @@ def data_tools():
                 category = (row.get("category") or row.get("Category") or "Others").strip()
                 amount = safe_float(row.get("amount") or row.get("Amount"), 0)
                 description = (row.get("description") or row.get("Description") or "").strip()
-                expense_date = (row.get("expense_date") or row.get("Expense Date") or datetime.utcnow().strftime("%Y-%m-%d")).strip()
+                expense_date = (row.get("expense_date") or row.get("Expense Date") or ist_now().strftime("%Y-%m-%d")).strip()
 
                 if amount <= 0:
                     continue
@@ -4277,7 +4280,7 @@ def data_tools():
                 category = str(col_value(row_values, "category", "Others")).strip() or "Others"
                 amount = safe_float(col_value(row_values, "amount", 0), 0)
                 description = str(col_value(row_values, "description", "")).strip()
-                expense_date = str(col_value(row_values, "expense_date", datetime.utcnow().strftime("%Y-%m-%d"))).strip()
+                expense_date = str(col_value(row_values, "expense_date", ist_now().strftime("%Y-%m-%d"))).strip()
 
                 if amount <= 0:
                     continue
@@ -4375,7 +4378,7 @@ def export_json():
     goals = [dict(row) for row in cur.fetchall()]
 
     payload = {
-        "exported_at": datetime.utcnow().isoformat(),
+        "exported_at": ist_now().isoformat(),
         "user_id": user_id,
         "expenses": expenses,
         "investments": investments,
@@ -4396,7 +4399,7 @@ def export_json():
 
     response = make_response(json.dumps(payload, indent=2))
     response.headers["Content-Type"] = "application/json"
-    response.headers["Content-Disposition"] = f"attachment; filename=smart_finance_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+    response.headers["Content-Disposition"] = f"attachment; filename=smart_finance_backup_{ist_now().strftime('%Y%m%d_%H%M%S')}.json"
     return response
 
 
@@ -4420,7 +4423,7 @@ def backup_sqlite():
     conn.commit()
     conn.close()
 
-    backup_name = f"smart_finance_sqlite_backup_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.db"
+    backup_name = f"smart_finance_sqlite_backup_{ist_now().strftime('%Y%m%d_%H%M%S')}.db"
     return send_file(DATABASE, as_attachment=True, download_name=backup_name, mimetype="application/octet-stream")
     
 # ---------------- AI INSIGHTS ---------------- #
@@ -4926,7 +4929,7 @@ def get_reports_context(cur, user_id):
 
     return {
         "user": user,
-        "report_generated_at": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+        "report_generated_at": ist_now().strftime("%d %b %Y, %I:%M %p"),
         "expenses": expenses,
         "category_rows": category_rows,
         "budget_row": budget_row,
@@ -4965,7 +4968,7 @@ def reports():
     try:
         cur = conn.cursor()
         report_context = get_reports_context(cur, session["user_id"])
-        month_key = datetime.utcnow().strftime("%Y-%m")
+        month_key = ist_now().strftime("%Y-%m")
         monthly_event_key = f"monthly_summary_emailed:{month_key}"
 
         cur.execute("SELECT 1 FROM notifications WHERE user_id=? AND event_key=? LIMIT 1", (session["user_id"], monthly_event_key))
@@ -5028,7 +5031,7 @@ def export_csv():
             "report_csv_exported",
             "CSV Report Generated",
             "Your CSV financial report has been generated successfully.",
-            f"report_csv_exported:{datetime.utcnow().strftime('%Y-%m-%d')}",
+                f"report_csv_exported:{ist_now().strftime('%Y-%m-%d')}",
             "success",
         )
         conn.commit()
@@ -5165,7 +5168,7 @@ def investment():
             "investment_added",
             "Investment Added",
             f"{investment_name} was added to your portfolio.",
-            f"investment_added:{datetime.utcnow().strftime('%Y-%m-%d')}:{investment_name}:{safe_float(invested_amount):.2f}",
+                f"investment_added:{ist_now().strftime('%Y-%m-%d')}:{investment_name}:{safe_float(invested_amount):.2f}",
             "success",
         )
 
@@ -5471,7 +5474,7 @@ def financial_goals():
                 "goal_completed",
                 "Goal Completed",
                 f"Congratulations! '{goal_name}' has reached its target.",
-                f"goal_completed:{goal_name}:{datetime.utcnow().strftime('%Y-%m-%d')}",
+                f"goal_completed:{goal_name}:{ist_now().strftime('%Y-%m-%d')}",
                 "success",
             )
 
@@ -5822,7 +5825,7 @@ def download_pdf():
         cur = conn.cursor()
 
         user_id = session["user_id"]
-        report_id = f"SFI-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+        report_id = f"SFI-{ist_now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
 
         report_context = get_reports_context(cur, user_id)
         log_activity(
@@ -5840,7 +5843,7 @@ def download_pdf():
             "report_pdf_generated",
             "PDF Report Generated",
             "Your PDF financial report is ready to download.",
-            f"report_pdf_generated:{datetime.utcnow().strftime('%Y-%m-%d')}",
+            f"report_pdf_generated:{ist_now().strftime('%Y-%m-%d')}",
             "success",
         )
         conn.commit()
@@ -5896,7 +5899,7 @@ def download_pdf():
     elements.append(Paragraph(f"Report ID: {report_id}", normal_style))
     elements.append(Paragraph(f"Prepared For: {user['name'] if user else 'N/A'}", normal_style))
     elements.append(Paragraph(f"Report Generated: {report_context['report_generated_at']}", normal_style))
-    elements.append(Paragraph(f"Generation Date: {datetime.utcnow().strftime('%d %b %Y')}", normal_style))
+    elements.append(Paragraph(f"Generation Date: {ist_now().strftime('%d %b %Y')}", normal_style))
     elements.append(Spacer(1, 0.4 * inch))
     elements.append(Paragraph("Confidential - For Authorized Use Only", normal_style))
     elements.append(PageBreak())
@@ -6120,7 +6123,7 @@ def download_pdf():
         send_report_generated_email(user["name"], user["email"], report_context["report_generated_at"], report_id)
 
     buffer.seek(0)
-    filename = f"financial_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    filename = f"financial_report_{ist_now().strftime('%Y%m%d_%H%M%S')}.pdf"
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype="application/pdf")
 
 
@@ -6145,7 +6148,7 @@ def email_report():
             flash("Unable to email report: account email is missing.", "danger")
             return redirect("/reports")
 
-        report_id = f"SFI-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
+        report_id = f"SFI-{ist_now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
         generated_at = report_context["report_generated_at"]
 
         # Commit report/achievement snapshot writes before PDF generation + email send.
@@ -6217,7 +6220,7 @@ def email_report():
             report_generated_at=generated_at,
             report_id=report_id,
         )
-        attached_name = f"financial_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf"
+        attached_name = f"financial_report_{ist_now().strftime('%Y%m%d_%H%M%S')}.pdf"
         sent = send_email_message(
             "Financial Report - Finance Analytics Platform",
             [user["email"]],
@@ -6243,7 +6246,7 @@ def email_report():
                 "report_emailed",
                 "Report Emailed",
                 "Latest financial report was sent to your registered email.",
-                f"report_emailed:{datetime.utcnow().strftime('%Y-%m-%d')}:{attached_name}",
+                f"report_emailed:{ist_now().strftime('%Y-%m-%d')}:{attached_name}",
                 "success",
             )
             conn.commit()
@@ -6470,7 +6473,7 @@ def profile():
             "profile_updated",
             "Profile Updated",
             "Your profile information was updated successfully.",
-            f"profile_updated:{datetime.utcnow().strftime('%Y-%m-%d')}",
+            f"profile_updated:{ist_now().strftime('%Y-%m-%d')}",
             "info",
         )
 
@@ -6633,7 +6636,7 @@ def account_settings():
                 "settings_updated",
                 "Security Preferences Updated",
                 "Your account security settings have been updated.",
-                f"settings_updated:{datetime.utcnow().strftime('%Y-%m-%d')}",
+                f"settings_updated:{ist_now().strftime('%Y-%m-%d')}",
                 "success",
             )
 
@@ -6710,7 +6713,7 @@ def account_settings():
         "operating_system": operating_system,
         "last_login": user["last_login_at"] or "Never",
         "account_created": user["created_at"] or "Unknown",
-        "last_activity": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+        "last_activity": ist_now().strftime("%Y-%m-%d %H:%M:%S IST"),
     }
 
     conn.close()
@@ -6793,7 +6796,7 @@ def reset_preferences():
         "preferences_reset",
         "Preferences Reset",
         "All configurable preferences were reset to default values.",
-        f"preferences_reset:{datetime.utcnow().strftime('%Y-%m-%d')}",
+        f"preferences_reset:{ist_now().strftime('%Y-%m-%d')}",
         "info",
     )
 

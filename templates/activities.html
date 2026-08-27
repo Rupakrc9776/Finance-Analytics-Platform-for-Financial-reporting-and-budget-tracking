@@ -16,7 +16,7 @@
                 <div>
                     <strong><i class="{{ activity.icon }}"></i> {{ activity.title }}</strong>
                     <p>{{ activity.description }}</p>
-                    <small>{{ activity.time_ago }} • {{ activity.created_at }} • {{ activity.activity_type|replace('_', ' ')|title }}</small>
+                    <small>{{ activity.time_ago }} • {{ activity.created_at|ist_datetime }} • {{ activity.activity_type|replace('_', ' ')|title }}</small>
                 </div>
                 {% if activity.related_route %}
                 <a href="{{ activity.related_route }}" class="btn btn-secondary btn-sm">Open</a>

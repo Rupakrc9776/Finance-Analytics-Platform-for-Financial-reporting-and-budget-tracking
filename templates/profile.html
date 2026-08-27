@@ -295,7 +295,7 @@
                             <div>
                                 <strong><i class="{{ item.icon }}"></i> {{ item.title }}</strong>
                                 <p>{{ item.description }}</p>
-                                <small>{{ item.time_ago }} • {{ item.created_at }}</small>
+                                <small>{{ item.time_ago }} • {{ item.created_at|ist_datetime }}</small>
                             </div>
                         </li>
                         {% endfor %}

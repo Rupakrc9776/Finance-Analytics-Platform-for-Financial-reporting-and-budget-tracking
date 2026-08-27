@@ -61,7 +61,7 @@
                         {% endfor %}
                     </div>
                     <p class="feedback-history-comment">{{ item['comment'] if item['comment'] else 'No comment provided.' }}</p>
-                    <small>{{ item['created_at'] }}</small>
+                    <small>{{ item['created_at']|ist_datetime }}</small>
                 </article>
                 {% else %}
                 <div class="feedback-empty-state">

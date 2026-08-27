@@ -31,7 +31,7 @@
                     <strong>{{ item['title'] }}</strong>
                     <span class="status-chip {{ item['priority'] or 'info' }}">{{ (item['priority'] or 'info')|title }}</span>
                     <p>{{ item['message'] }}</p>
-                    <small>{{ item['time_ago'] }} • {{ item['created_at'] }}</small>
+                    <small>{{ item['time_ago'] }} • {{ item['created_at']|ist_datetime }}</small>
                 </div>
                 {% if item['is_read'] == 0 %}
                 <form action="{{ url_for('mark_notification_read', notification_id=item['id']) }}" method="POST">

@@ -94,7 +94,7 @@
                         </td>
                         <td>{{ item.rating }} / 5</td>
                         <td>{{ item.comment if item.comment else 'No comment provided.' }}</td>
-                        <td>{{ item.created_at }}</td>
+                        <td>{{ item.created_at|ist_datetime }}</td>
                     </tr>
                     {% else %}
                     <tr>
@@ -133,7 +133,7 @@
                     <div class="admin-mini-item">
                         <strong>{{ item.title }}</strong>
                         <p>{{ item.message }}</p>
-                        <small>{{ item.user_name }} • {{ item.priority|title }} • {{ item.created_at }}</small>
+                        <small>{{ item.user_name }} • {{ item.priority|title }} • {{ item.created_at|ist_datetime }}</small>
                     </div>
                     {% else %}
                     <p class="admin-empty-state">No notifications available.</p>
@@ -149,7 +149,7 @@
                         <span>{{ item.activity_type }}</span>
                         <strong>{{ item.title }}</strong>
                         <p>{{ item.description }}</p>
-                        <small>{{ item.user_email }} • {{ item.created_at }}</small>
+                        <small>{{ item.user_email }} • {{ item.created_at|ist_datetime }}</small>
                     </div>
                     {% else %}
                     <p class="admin-empty-state">No logs available.</p>

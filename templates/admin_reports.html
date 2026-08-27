@@ -61,7 +61,7 @@
                 <div class="admin-mini-item">
                     <strong>{{ item.title }}</strong>
                     <p>{{ item.user_name }} • {{ item.activity_type }}</p>
-                    <small>{{ item.created_at }}</small>
+                    <small>{{ item.created_at|ist_datetime }}</small>
                 </div>
                 {% else %}
                 <p class="admin-empty-state">No recent export-related activity found.</p>
