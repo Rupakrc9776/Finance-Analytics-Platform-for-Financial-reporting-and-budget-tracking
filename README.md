@@ -144,16 +144,6 @@ Current AI Features include:
 
 ---
 
-# 📸 Project Preview
-
-> Screenshot will be added here after final documentation.
-
-```md
-![Finance Analytics Platform for Financial Reporting and Budget Tracking](docs/screenshots/home.png)
-```
-
----
-
 # 🏆 Project Highlights
 
 - Modern Flask Architecture
