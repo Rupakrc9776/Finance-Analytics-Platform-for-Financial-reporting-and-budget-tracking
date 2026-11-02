@@ -104,7 +104,9 @@ def get_recent_conversations(user_id: int, limit: int = 10) -> list[dict[str, ob
             cur = connection.cursor()
             cur.execute(
                 """
-                                SELECT h.id, h.question, h.answer, h.created_at, f.feedback
+                                SELECT h.id, h.question, h.answer, h.created_at, f.feedback,
+                                       COALESCE(h.conversation_title, h.question) AS conversation_title,
+                                       COALESCE(h.thread_id, 'legacy-' || h.id) AS thread_id
                                 FROM jarvis_history h
                                 LEFT JOIN jarvis_feedback f
                                     ON f.user_id = h.user_id AND f.conversation_id = h.id
@@ -131,8 +133,8 @@ def get_recent_conversations(user_id: int, limit: int = 10) -> list[dict[str, ob
             "answer": row["answer"],
             "created_at": row["created_at"],
             "feedback": row["feedback"],
-            "conversation_title": row["question"][:72],
-            "thread_id": None,
+            "conversation_title": row["conversation_title"],
+            "thread_id": row["thread_id"],
         }
         for row in rows
     ]
@@ -337,7 +339,9 @@ def search_conversations(user_id: int, query: str, limit: int = 50) -> list[dict
             cur = connection.cursor()
             cur.execute(
                 """
-                                SELECT h.id, h.question, h.answer, h.created_at, f.feedback
+                                SELECT h.id, h.question, h.answer, h.created_at, f.feedback,
+                                       COALESCE(h.conversation_title, h.question) AS conversation_title,
+                                       COALESCE(h.thread_id, 'legacy-' || h.id) AS thread_id
                                 FROM jarvis_history h
                                 LEFT JOIN jarvis_feedback f
                                     ON f.user_id = h.user_id AND f.conversation_id = h.id
@@ -365,6 +369,8 @@ def search_conversations(user_id: int, query: str, limit: int = 50) -> list[dict
             "answer": row["answer"],
             "created_at": row["created_at"],
             "feedback": row["feedback"],
+            "conversation_title": row["conversation_title"],
+            "thread_id": row["thread_id"],
         }
         for row in rows
     ]
